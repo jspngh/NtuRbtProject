@@ -1,1 +1,7 @@
+# Ignore executables
+*
+!/**/
+!*.*
+
 *.pdf
+*.py
