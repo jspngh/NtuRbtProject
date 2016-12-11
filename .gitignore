@@ -5,3 +5,10 @@
 
 *.pdf
 *.py
+
+*.swp
+
+#CMake
+CMakeCache.txt
+CMakeFiles/
+*.cmake
