@@ -1,61 +1,13 @@
 #include <stdio.h>
-#include <string>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
+#include "LTexture.h"
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 500;
+const int SCREEN_HEIGHT = 222;
 
 const int SOUNDBOARD_FILES = 14;
-
-//Texture wrapper class
-class LTexture
-{
-    public:
-        //Initializes variables
-        LTexture();
-
-        //Deallocates memory
-        ~LTexture();
-
-        //Loads image at specified path
-        bool loadFromFile( std::string path );
-
-#ifdef _SDL_TTF_H
-        //Creates image from font string
-        bool loadFromRenderedText( std::string textureText, SDL_Color textColor );
-#endif
-
-        //Deallocates texture
-        void free();
-
-        //Set color modulation
-        void setColor( Uint8 red, Uint8 green, Uint8 blue );
-
-        //Set blending
-        void setBlendMode( SDL_BlendMode blending );
-
-        //Set alpha modulation
-        void setAlpha( Uint8 alpha );
-
-        //Renders texture at given point
-        void render( int x, int y, SDL_Rect* clip = NULL, double angle = 0.0, SDL_Point* center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE );
-
-        //Gets image dimensions
-        int getWidth();
-        int getHeight();
-
-    private:
-        //The actual hardware texture
-        SDL_Texture* mTexture;
-
-        //Image dimensions
-        int mWidth;
-        int mHeight;
-};
+const int ANIMATION_FRAMES = 40;
 
 //Starts up SDL and creates window
 bool init();
@@ -72,19 +24,10 @@ SDL_Window* gWindow = NULL;
 //The window renderer
 SDL_Renderer* gRenderer = NULL;
 
-//Scene texture
-LTexture gPromptTexture;
+//Animation textures
+LTexture gAnimation[ANIMATION_FRAMES];
 
-//The music that will be played
-Mix_Music *gMusic = NULL;
-
-//The sound effects that will be used
-Mix_Chunk *gScratch = NULL;
-Mix_Chunk *gHigh = NULL;
-Mix_Chunk *gMedium = NULL;
-Mix_Chunk *gLow = NULL;
-
-std::string soundboardNames[SOUNDBOARD_FILES] = {
+std::string gSoundboardNames[SOUNDBOARD_FILES] = {
     "3_clap",
     "because_im_a_potato",
     "doing_great",
@@ -101,156 +44,10 @@ std::string soundboardNames[SOUNDBOARD_FILES] = {
     "your_fault"
 };
 
-Mix_Chunk *soundboard[SOUNDBOARD_FILES] = { NULL };
+Mix_Chunk *gSoundboard[SOUNDBOARD_FILES] = { NULL };
 
-
-LTexture::LTexture()
-{
-    //Initialize
-    mTexture = NULL;
-    mWidth = 0;
-    mHeight = 0;
-}
-
-LTexture::~LTexture()
-{
-    //Deallocate
-    free();
-}
-
-bool LTexture::loadFromFile( std::string path )
-{
-    //Get rid of preexisting texture
-    free();
-
-    //The final texture
-    SDL_Texture* newTexture = NULL;
-
-    //Load image at specified path
-    SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
-    if( loadedSurface == NULL )
-    {
-        printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
-    }
-    else
-    {
-        //Color key image
-        SDL_SetColorKey( loadedSurface, SDL_TRUE, SDL_MapRGB( loadedSurface->format, 0, 0xFF, 0xFF ) );
-
-        //Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface( gRenderer, loadedSurface );
-        if( newTexture == NULL )
-        {
-            printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-        }
-        else
-        {
-            //Get image dimensions
-            mWidth = loadedSurface->w;
-            mHeight = loadedSurface->h;
-        }
-
-        //Get rid of old loaded surface
-        SDL_FreeSurface( loadedSurface );
-    }
-
-    //Return success
-    mTexture = newTexture;
-    return mTexture != NULL;
-}
-
-#ifdef _SDL_TTF_H
-bool LTexture::loadFromRenderedText( std::string textureText, SDL_Color textColor )
-{
-    //Get rid of preexisting texture
-    free();
-
-    //Render text surface
-    SDL_Surface* textSurface = TTF_RenderText_Solid( gFont, textureText.c_str(), textColor );
-    if( textSurface != NULL )
-    {
-        //Create texture from surface pixels
-        mTexture = SDL_CreateTextureFromSurface( gRenderer, textSurface );
-        if( mTexture == NULL )
-        {
-            printf( "Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError() );
-        }
-        else
-        {
-            //Get image dimensions
-            mWidth = textSurface->w;
-            mHeight = textSurface->h;
-        }
-
-        //Get rid of old surface
-        SDL_FreeSurface( textSurface );
-    }
-    else
-    {
-        printf( "Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError() );
-    }
-
-
-    //Return success
-    return mTexture != NULL;
-}
-#endif
-
-void LTexture::free()
-{
-    //Free texture if it exists
-    if( mTexture != NULL )
-    {
-        SDL_DestroyTexture( mTexture );
-        mTexture = NULL;
-        mWidth = 0;
-        mHeight = 0;
-    }
-}
-
-void LTexture::setColor( Uint8 red, Uint8 green, Uint8 blue )
-{
-    //Modulate texture rgb
-    SDL_SetTextureColorMod( mTexture, red, green, blue );
-}
-
-void LTexture::setBlendMode( SDL_BlendMode blending )
-{
-    //Set blending function
-    SDL_SetTextureBlendMode( mTexture, blending );
-}
-
-void LTexture::setAlpha( Uint8 alpha )
-{
-    //Modulate texture alpha
-    SDL_SetTextureAlphaMod( mTexture, alpha );
-}
-
-void LTexture::render( int x, int y, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
-{
-    //Set rendering space and render to screen
-    SDL_Rect renderQuad = { x, y, mWidth, mHeight };
-
-    //Set clip rendering dimensions
-    if( clip != NULL )
-    {
-        renderQuad.w = clip->w;
-        renderQuad.h = clip->h;
-    }
-
-    //Render to screen
-    SDL_RenderCopyEx( gRenderer, mTexture, clip, &renderQuad, angle, center, flip );
-}
-
-int LTexture::getWidth()
-{
-    return mWidth;
-}
-
-int LTexture::getHeight()
-{
-    return mHeight;
-}
+//The music that will be played
+Mix_Music *gMusic = NULL;
 
 bool init()
 {
@@ -291,6 +88,7 @@ bool init()
             {
                 //Initialize renderer color
                 SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+                LTexture::setRenderer(gRenderer);
 
                 //Initialize PNG loading
                 int imgFlags = IMG_INIT_PNG;
@@ -309,7 +107,7 @@ bool init()
 
                 if( Mix_Volume( -1, 10 ) < 0 )
                 {
-                    printf( "SDL volume could not be set! SDL_mixer Error: %s\n", Mix_GetError() );
+                    printf( "SDL_mixer volume could not be set! SDL_mixer Error: %s\n", Mix_GetError() );
                     success = false;
                 }
             }
@@ -324,11 +122,15 @@ bool loadMedia()
     //Loading success flag
     bool success = true;
 
-    //Load prompt texture
-    if( !gPromptTexture.loadFromFile( "./21_sound_effects_and_music/prompt.png" ) )
+    //Load animation textures
+    for (int i = 0; i < ANIMATION_FRAMES; i++)
     {
-        printf( "Failed to load prompt texture!\n" );
-        success = false;
+        std::string filepath =  "./animations/frame_" + std::to_string(i) + ".gif";
+        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
+        {
+            printf( "Failed to load prompt texture!\n" );
+            success = false;
+        }
     }
 
     //Load music
@@ -343,9 +145,9 @@ bool loadMedia()
 
     for (int i = 0; i < SOUNDBOARD_FILES; i++)
     {
-        std::string filepath =  "./soundboard/" + soundboardNames[i] + ".mp3";
-        soundboard[i] = Mix_LoadWAV(filepath.c_str());
-        if( soundboard[i] == NULL )
+        std::string filepath =  "./soundboard/" + gSoundboardNames[i] + ".mp3";
+        gSoundboard[i] = Mix_LoadWAV(filepath.c_str());
+        if( gSoundboard[i] == NULL )
         {
             printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
             success = false;
@@ -358,17 +160,17 @@ bool loadMedia()
 void close()
 {
     //Free loaded images
-    gPromptTexture.free();
+    for(int i = 0; i < ANIMATION_FRAMES; i++)
+    {
+        gAnimation[i].free();
+    }
 
     //Free the sound effects
-    Mix_FreeChunk( gScratch );
-    Mix_FreeChunk( gHigh );
-    Mix_FreeChunk( gMedium );
-    Mix_FreeChunk( gLow );
-    gScratch = NULL;
-    gHigh = NULL;
-    gMedium = NULL;
-    gLow = NULL;
+    for(int i = 0; i < ANIMATION_FRAMES; i++)
+    {
+        Mix_FreeChunk(gSoundboard[i]);
+        gSoundboard[i] = NULL;
+    }
 
     //Free the music
     Mix_FreeMusic( gMusic );
@@ -405,6 +207,9 @@ int main( int argc, char* args[] )
             //Main loop flag
             bool quit = false;
 
+            //frame_cntr
+            int frame = 0;
+
             //Event handler
             SDL_Event e;
 
@@ -426,22 +231,22 @@ int main( int argc, char* args[] )
                         {
                             //Play high sound effect
                             case SDLK_1:
-                                Mix_PlayChannel( -1, soundboard[0], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[0], 0 );
                                 break;
 
                                 //Play medium sound effect
                             case SDLK_2:
-                                Mix_PlayChannel( -1, soundboard[1], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[1], 0 );
                                 break;
 
                                 //Play low sound effect
                             case SDLK_3:
-                                Mix_PlayChannel( -1, soundboard[2], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[2], 0 );
                                 break;
 
                                 //Play scratch sound effect
                             case SDLK_4:
-                                Mix_PlayChannel( -1, soundboard[3], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[3], 0 );
                                 break;
 
                             case SDLK_9:
@@ -482,7 +287,8 @@ int main( int argc, char* args[] )
                 SDL_RenderClear( gRenderer );
 
                 //Render prompt
-                gPromptTexture.render( 0, 0 );
+                gAnimation[frame].render( 0, 0 );
+                frame = ++frame % 40;
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
