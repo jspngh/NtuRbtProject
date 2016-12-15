@@ -4,65 +4,64 @@
 using namespace std;
 
 #define DEBUG false
+#define INF 99999999
+#define FIRST_MOVE -1
+
 struct Node
 {
-    Board board;
     int score;
     int move;
 };
 
-Node negamax(int player, Node node, int depth)
+int negamax(int player, Board board, int depth)
 {
-    //cout << endl;
-
-    if (depth == 0 || node.board.isFinished())
+    if (depth == 0 || board.isFinished()) // TODO: add check to to see if board is completely filled
     {
-        node.score = evaluateBoard(player, node.board); // player * ??
-        return node;
+        return evaluateBoard(player, board);
     }
 
-    if(DEBUG) cout << "board 1: " << endl;
-    if(DEBUG) cout << node.board << endl;
-
-    Node best_node = {node.board, -99999999, -1};
-
+    int best_score = -INF;
     for (int col = 0; col < BOARD_WIDTH; col++)
     {
-        if (node.board.isMoveLegal(col))
+        if (board.isMoveLegal(col))
         {
-            Node temp = node;
-            temp.board.doMove(col, player);
-            if(DEBUG) cout << "board 2: " << endl;
-            if(DEBUG) cout << temp.board << endl;
-            temp.move = col;
-            Node n = negamax(-player, temp, depth - 1);
-            n.score = - n.score;
-            if(DEBUG) cout << "score " << n.score << endl;
-            if(DEBUG) cout << "move " << n.move << endl;
-            if (n.score > best_node.score)
-                best_node = n;
+            Board temp = board;
+            temp.doMove(col, player);
+            int score = - negamax(-player, temp, depth - 1);
+            if (score > best_score)
+                best_score = score;
         }
     }
 
-    //cout << endl << "best move " << best_node.move << endl;
-    return best_node;
+    return best_score;
 }
 
-// Pseudo code:
-// function negamax(node, depth, color)
-//     if depth = 0 or node is a terminal node
-//         return color * the heuristic value of node
-
-//     bestValue := −∞
-//     foreach child of node
-//         v := −negamax(child, depth − 1, −color)
-//         bestValue := max( bestValue, v )
-//     return bestValue
 int nextMove(int player, Board board, int depth)
 {
-    Node temp = {board, -99999999, -1};
-    Node n = negamax(player, temp, depth);
-    return n.move;
+    vector<Node> legal_moves;
+    for (int col = 0; col < BOARD_WIDTH; col++)
+    {
+        if (board.isMoveLegal(col))
+        {
+            Board temp = board;
+            temp.doMove(col, player);
+            int score = - negamax(-player, temp, depth - 1);
+            legal_moves.push_back({score, col});
+        }
+    }
+
+    Node best = {-INF, FIRST_MOVE};
+    auto it = legal_moves.begin();
+    while (it != legal_moves.end())
+    {
+        if (it->score > best.score)
+        {
+            best = *it;
+        }
+        it++;
+    }
+
+    return best.move;
 }
 
 
@@ -70,32 +69,20 @@ int nextMove(int player, Board board, int depth)
 // i.e. this value is always calculated from the point of view of player 1
 int evaluateBoard(int player, Board board)
 {
-    int opp;
-    if (player == 1)
-        opp = 0;
-    else
+    int opp = 0;
+    if (player == -1)
     {
         player = 0;
         opp = 1;
     }
 
-
-
-    int fours = board.countStreaks(player, 4);
-    int threes = board.countStreaks(player, 3);
-    int twos = board.countStreaks(player, 2);
-    int opp_fours = board.countStreaks(opp, 4);
+    int fours = board.countStreaks(player, 4) / 2;
+    int threes = board.countStreaks(player, 3) / 2;
+    int twos = board.countStreaks(player, 2) / 2;
+    int opp_fours = board.countStreaks(opp, 4) / 2;
 
     if (opp_fours > 0)
-    {
-        //cout << "opponent 4" << endl;
         return -100000;
-    }
     else
         return fours * 100000 + threes * 100 + twos;
-
-
-    //return (board.countStreaks(1, 4) - board.countStreaks(0, 4)) * 99999
-            //+ (board.countStreaks(1, 3) - board.countStreaks(0, 3)) * 100
-            //+ (board.countStreaks(1, 2) - board.countStreaks(0, 2)) * 10;
 }
