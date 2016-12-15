@@ -43,10 +43,17 @@ int nextMove(int player, Board board, int depth)
     if (depth == 0 || legal_moves.size() == 0)
         return evaluateBoard(player, board);
 
-    if (player == 0)
+    if (player == 0) /*Maximizing player*/
     {
+        int alpha = -999999;
+        auto vector<int>::iterator it = legal_moves.begin();
+        while (it != legal_moves.end())
+        {
+
+            it++;
+        }
     }
-    else
+    else /*Minimizing player */
     {
     }
 }

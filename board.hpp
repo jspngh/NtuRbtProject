@@ -3,11 +3,12 @@
 
 #include <iostream>
 #include <ostream>
+#include <string>
 
 #define BOARD_HEIGHT 6
 #define BOARD_WIDTH  7
 
-enum State { Red=0, Yellow, Empty };
+enum State { Red=0, Yellow=1, Empty };
 
 
 class Board
@@ -17,13 +18,60 @@ class Board
         ~Board();
         State getState(int row, int col);
         void setState(int row, int col, State state);
-        //State[][] getBoard();
         bool isMoveLegal(int col);
         bool doMove(int col, int player);
+
+        /**
+         *  Returns the number of streaks of length streak for a player
+         *  Parameters:
+         *          player -- O or 1, for resp. Red or Yellow player
+         *          streak -- length of the streak (maximum 4)
+         */
+        int countSteaks(int player, int streak);
+
+        /**
+         * Return:
+         *          -1 -- if the game is not finished
+         *          0  -- if player 0 (Red) has won
+         *          1  -- if player 1 (Yellow) has won
+         */
+        int gameFinished();
+
         friend std::ostream& operator<<(std::ostream& os, const Board& board);
     private:
+        bool isInside(int row, int col);
+
+        /**
+         *  Returns True if there starts a horizontal streak
+         *  for player of length streak at (col, row) position.
+         *  Parameters:
+         *          row -- integer between 0 and BOARD_HEIGHT
+         *          col -- integer between 0 and BOARD_WIDTH
+         *          player -- O or 1, for resp. Red or Yellow player
+         *          streak -- length of the streak (maximum 4)
+         */
+        bool checkHorizontal(int row, int col, int player, int streak);
+
+        /** Same as checkHorizontal but for vertical streaks*/
+        bool checkVertical(int row, int col, int player, int streak);
+
+        /** Same as checkHorizontal but for diagonal streaks going up*/
+        bool checkDiagonal(int row, int col, int player, int streak);
+
+        /**
+         *  Parameters:
+         *          upDir -- -1 down, 0 don't move vertically, 1 move up
+         *          rightDir -- -1 left, 0 don't move, 1 right
+         */
+        bool checkStreak(int row, int col, int upDir, int rightDir, int player, int streak);
+
+        // Members
         State board[BOARD_HEIGHT][BOARD_WIDTH];
-        const char* state2str[3] = { "X", "O", " "};
+
+        // some constants for printing
+        const char* state2str[3] = { "O", "X", " "};
+        const std::string colNumbers = " 1   2   3   4   5   6   7";
+        const std::string delimeter = "--------------------------";
 };
 
 
