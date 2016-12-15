@@ -27,31 +27,3 @@ int evaluateBoard(int player, Board board);
 
 #endif
 
-int nextMove(int player, Board board, int depth)
-{
-    vector<int> legal_moves;
-    for (int col = 0; col < BOARD_WIDTH; col++)
-    {
-        if (board.isMoveLegal(col))
-        {
-            legal_moves.push_back(col);
-        }
-    }
-
-    if (depth == 0 || legal_moves.size() == 0)
-        return evaluateBoard(player, board);
-
-    if (player == 0) /*Maximizing player*/
-    {
-        int alpha = -999999;
-        auto vector<int>::iterator it = legal_moves.begin();
-        while (it != legal_moves.end())
-        {
-
-            it++;
-        }
-    }
-    else /*Minimizing player */
-    {
-    }
-}

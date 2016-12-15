@@ -58,6 +58,17 @@ ostream& operator<<(ostream& os, const Board& b)
     return os;
 }
 
+int Board::gameFinished()
+{
+    if (countStreaks(0, 4) > 0)
+        return 0;
+
+    if (countStreaks(1, 4) > 0)
+        return 1;
+
+    return -1;
+}
+
 int Board::countStreaks(int player, int streak)
 {
     int count = 0;
@@ -65,12 +76,9 @@ int Board::countStreaks(int player, int streak)
     {
         for (int col = 0; col < BOARD_WIDTH; col++)
         {
-            if (checkHorizontal(row, col, player, streak))
-                count++;
-            if (checkVertical(row, col, player, streak))
-                count++;
-            if (checkDiagonal(row, col, player, streak))
-                count++;
+            count += checkHorizontal(row, col, player, streak);
+            count += checkVertical(row, col, player, streak);
+            count += checkDiagonal(row, col, player, streak);
         }
     }
     return count;

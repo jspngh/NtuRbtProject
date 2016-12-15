@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "board.hpp"
+#include "minimax.hpp"
 
 using namespace std;
 
@@ -9,18 +10,17 @@ int main (int argc, char* args[])
     Board b;
     //b.doMove(1, 1);
     //b.doMove(1, 1);
-    //b.doMove(1, 1);
     b.doMove(1, 1);
 
     b.doMove(3, 0);
     b.doMove(4, 0);
     b.doMove(2, 0);
-    b.doMove(5, 0);
+    //b.doMove(5, 0);
 
     b.doMove(2, 1);
     b.doMove(3, 1);
-    b.doMove(3, 1);
-    b.doMove(4, 1);
+    //b.doMove(3, 1);
+    //b.doMove(4, 1);
     b.doMove(4, 1);
     b.doMove(4, 1);
 
@@ -32,4 +32,9 @@ int main (int argc, char* args[])
     cout << score << endl;
     cout << "score:" << endl;
     cout << score0 << endl;
+
+    cout <<  "Finished: " << endl;
+    cout << b.gameFinished() << endl;
+
+    cout << evaluateBoard(0, b) << endl;
 }
