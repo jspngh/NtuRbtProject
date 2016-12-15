@@ -27,7 +27,7 @@ class Board
          *          player -- O or 1, for resp. Red or Yellow player
          *          streak -- length of the streak (maximum 4)
          */
-        int countSteaks(int player, int streak);
+        int countStreaks(int player, int streak);
 
         /**
          * Return:
@@ -42,28 +42,28 @@ class Board
         bool isInside(int row, int col);
 
         /**
-         *  Returns True if there starts a horizontal streak
-         *  for player of length streak at (col, row) position.
+         *  Returns the number of horizontal streaks of certain length
+         *  for a player that start at (row, col) position.
          *  Parameters:
          *          row -- integer between 0 and BOARD_HEIGHT
          *          col -- integer between 0 and BOARD_WIDTH
          *          player -- O or 1, for resp. Red or Yellow player
          *          streak -- length of the streak (maximum 4)
          */
-        bool checkHorizontal(int row, int col, int player, int streak);
+        int checkHorizontal(int row, int col, int player, int streak);
 
         /** Same as checkHorizontal but for vertical streaks*/
-        bool checkVertical(int row, int col, int player, int streak);
+        int checkVertical(int row, int col, int player, int streak);
 
         /** Same as checkHorizontal but for diagonal streaks going up*/
-        bool checkDiagonal(int row, int col, int player, int streak);
+        int checkDiagonal(int row, int col, int player, int streak);
 
         /**
          *  Parameters:
          *          upDir -- -1 down, 0 don't move vertically, 1 move up
-         *          rightDir -- -1 left, 0 don't move, 1 right
+         *          rightDir -- -1 left, 0 don't move horizontally, 1 right
          */
-        bool checkStreak(int row, int col, int upDir, int rightDir, int player, int streak);
+        int checkStreak(int row, int col, int upDir, int rightDir, int player, int streak);
 
         // Members
         State board[BOARD_HEIGHT][BOARD_WIDTH];

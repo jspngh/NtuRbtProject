@@ -25,8 +25,6 @@ int nextMove(int player, Board board, int depth);
  */
 int evaluateBoard(int player, Board board);
 
-
-
 #endif
 
 int nextMove(int player, Board board, int depth)

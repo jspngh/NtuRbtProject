@@ -54,12 +54,11 @@ ostream& operator<<(ostream& os, const Board& b)
 
             os << " " << b.state2str[b.board[row][col]] << append;
         }
-        //os << b.delimeter << endl;
     }
     return os;
 }
 
-int Board::countSteaks(int player, int streak)
+int Board::countStreaks(int player, int streak)
 {
     int count = 0;
     for (int row = 0; row < BOARD_HEIGHT; row++)
@@ -82,38 +81,40 @@ bool Board::isInside(int row, int col)
     return col >= 0 && col < BOARD_WIDTH && row >= 0 && row < BOARD_HEIGHT;
 }
 
-bool Board::checkHorizontal(int row, int col, int player, int streak)
-{
-    return checkStreak(row, col, 1, 0, player, streak)
-            || checkStreak(row, col, -1, 0, player, streak);
-}
-
-bool Board::checkVertical(int row, int col, int player, int streak)
+int Board::checkHorizontal(int row, int col, int player, int streak)
 {
     return checkStreak(row, col, 0, 1, player, streak)
-            || checkStreak(row, col, 0, -1, player, streak);
+            + checkStreak(row, col, 0, -1, player, streak);
 }
 
-bool Board::checkDiagonal(int row, int col, int player, int streak)
+int Board::checkVertical(int row, int col, int player, int streak)
+{
+    return checkStreak(row, col, 1, 0, player, streak)
+            + checkStreak(row, col, -1, 0, player, streak);
+}
+
+int Board::checkDiagonal(int row, int col, int player, int streak)
 {
     return checkStreak(row, col, 1, 1, player, streak)
-            || checkStreak(row, col, -1, -1, player, streak);
+            + checkStreak(row, col, -1, -1, player, streak)
+            + checkStreak(row, col, -1, 1, player, streak)
+            + checkStreak(row, col, 1, -1, player, streak);
 }
 
-bool Board::checkStreak(int row, int col, int upDir, int rightDir, int player, int streak)
+int Board::checkStreak(int row, int col, int upDir, int rightDir, int player, int streak)
 {
     for (int i = 0; i < streak; i++)
     {
-        col = col + i * rightDir;
-        row = row + i * upDir;
-
         if (!isInside(row, col))
-            return false;
+            return 0;
 
         if (board[row][col] != player)
-            return false;
+            return 0;
+
+        col += rightDir;
+        row += upDir;
     }
-    return true;
+    return 1;
 }
 
 //int heur_point(int x, int y)
