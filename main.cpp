@@ -8,33 +8,45 @@ using namespace std;
 int main (int argc, char* args[])
 {
     Board b;
-    //b.doMove(1, 1);
-    //b.doMove(1, 1);
-    b.doMove(1, 1);
+    int player_user = 0;
+    int player_ai = 1;
+    int col;
+    int depth = 6;
 
-    b.doMove(3, 0);
-    b.doMove(4, 0);
-    b.doMove(2, 0);
-    //b.doMove(5, 0);
+    int winner = -1;
 
-    b.doMove(2, 1);
-    b.doMove(3, 1);
-    //b.doMove(3, 1);
-    //b.doMove(4, 1);
-    b.doMove(4, 1);
-    b.doMove(4, 1);
+    while (winner == -1)
+    {
+        // user move
+        cout << "give a column please (1-7): ";
+        cin >> col;
+        col = col - 1;
+        b.doMove(col, player_user);
 
-    cout << b;
+        // check if user won
+        if (b.getWinner() != -1)
+        {
+            winner = player_user;
+            break;
+        }
 
-    int score = b.countStreaks(1,4);
-    int score0 = b.countStreaks(0, 4);
-    cout << "score:" << endl;
-    cout << score << endl;
-    cout << "score:" << endl;
-    cout << score0 << endl;
+        // AI's move
+        col = nextMove(player_ai, b, depth);
+        b.doMove(col, player_ai);
 
-    cout <<  "Finished: " << endl;
-    cout << b.gameFinished() << endl;
+        // check if AI won
+        if (b.getWinner() != -1)
+        {
+            winner = player_ai;
+            break;
+        }
 
-    cout << evaluateBoard(0, b) << endl;
+        // print board
+        cout << b << endl;
+    }
+
+    cout << b << endl;
+
+    cout << "game is finished" << endl;
+    cout << "winner: " << winner << endl;
 }

@@ -16,6 +16,14 @@ class Board
     public:
         Board();
         ~Board();
+        Board& operator=(const Board& b)
+        {
+            for(int row = 0; row < BOARD_HEIGHT; row++)
+                for(int col = 0; col < BOARD_WIDTH; col++)
+                    board[row][col] = b.board[row][col];
+
+            return *this;
+        }
         State getState(int row, int col);
         void setState(int row, int col, State state);
         bool isMoveLegal(int col);
@@ -35,7 +43,8 @@ class Board
          *          0  -- if player 0 (Red) has won
          *          1  -- if player 1 (Yellow) has won
          */
-        int gameFinished();
+        int getWinner();
+        bool isFinished();
 
         friend std::ostream& operator<<(std::ostream& os, const Board& board);
     private:

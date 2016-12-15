@@ -1,11 +1,9 @@
 #ifndef MINIMAX_H
 #define MINIMAX_H
 
-#include <vector>
 
 #include "board.hpp"
 
-using namespace std;
 
 /**
  * Returns the best move (as a column number)

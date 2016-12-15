@@ -34,7 +34,7 @@ bool Board::doMove(int col, int player)
         int row = BOARD_HEIGHT - 1;
         // look for the first empty spot in the column
         for (; row >= 0 && board[row][col] != State::Empty; row--);
-        board[row][col] = (player == 0 ? State::Red : State::Yellow);
+        board[row][col] = (player == 1 ? State::Yellow : State::Red);
         return true;
     }
     return false;
@@ -58,7 +58,7 @@ ostream& operator<<(ostream& os, const Board& b)
     return os;
 }
 
-int Board::gameFinished()
+int Board::getWinner()
 {
     if (countStreaks(0, 4) > 0)
         return 0;
@@ -67,6 +67,11 @@ int Board::gameFinished()
         return 1;
 
     return -1;
+}
+
+bool Board::isFinished()
+{
+    return getWinner() != -1;
 }
 
 int Board::countStreaks(int player, int streak)
