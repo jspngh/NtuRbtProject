@@ -2,11 +2,15 @@
 
 #include "board.hpp"
 #include "minimax.hpp"
+#include "vision/VisionManager.h"
 
 using namespace std;
 
 int main (int argc, char* args[])
 {
+    Freenect::Freenect freenect;
+    KinectManager& device = freenect.createDevice<KinectManager>(0);
+    VisionManager vm(&device);
     Board b;
 
     int player_user = 0;
@@ -19,10 +23,17 @@ int main (int argc, char* args[])
     while (winner == -1)
     {
         // user move
-        cout << "give a column please (1-7): ";
-        cin >> col;
-        col = col - 1;
-        b.doMove(col, player_user);
+        // cout << "give a column please (1-7): ";
+        // cin >> col;
+        // col = col - 1;
+        // b.doMove(col, player_user);
+        cout << "its your turn" << endl;
+        cv::waitKey(10000);
+        cout << "we are here" << endl;
+        vm.updateBoard(b);
+
+        cout << "player made his move" << endl;
+        cout << b << endl;
 
         // check if user won
         if (b.getWinner() != -1)
