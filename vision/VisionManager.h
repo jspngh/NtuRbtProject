@@ -11,15 +11,31 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/videoio.hpp>
 
+#include "../board.hpp"
 #include "KinectManager.h"
 
-#define REGION_THRESHOLD 500
+#define REGION_THRESHOLD 300
 
 struct Stone
 {
     int x;
     int y;
     bool yellow;
+
+    bool operator<(const Stone& rhs) const
+    {
+        return y < rhs.y;
+    }
+
+    bool operator>(const Stone& rhs) const
+    {
+        return y > rhs.y;
+    }
+
+    bool operator==(const Stone& rhs) const
+    {
+        return y == rhs.y;
+    }
 };
 
 struct BoardEdge
@@ -49,9 +65,10 @@ class VisionManager{
 		VisionManager();
 		VisionManager(KinectManager *km);
 
-		bool getVideo(cv::Mat& output);
+        void updateBoard(Board& board);
 
-        cv::Mat processFrame(cv::Mat frame);
+		bool getVideo(cv::Mat& output);
+        void processFrame(cv::Mat frame, State **output);
 
     private:
         KinectManager *kinectManager;

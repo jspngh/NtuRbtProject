@@ -4,9 +4,11 @@
 
 #include "VisionManager.h"
 
-// #define SHOW_DEBUG
+#define SHOW_DEBUG
 #define SHOW_INFO
 #define SHOW_WARN
+
+#define USE_KINECT
 
 using namespace cv;
 using namespace std;
@@ -156,11 +158,13 @@ list<Stone> VisionManager::findStones(Mat raw)
     Mat processedFrame = Mat::zeros(raw.size(), CV_8UC3);
 
     // find yellow
-    inRange(frameHSV, Scalar(20, 127, 102), Scalar(35, 204, 230), frameYellow);
+    inRange(frameHSV, Scalar(20, 76, 102), Scalar(35, 204, 230), frameYellow);
     // find red
-    inRange(frameHSV, Scalar(0, 102, 102), Scalar(10, 230, 204), redMaskL);
-    inRange(frameHSV, Scalar(165, 102, 102), Scalar(180, 230, 204), redMaskH);
+    inRange(frameHSV, Scalar(0, 102, 66), Scalar(10, 230, 204), redMaskL);
+    inRange(frameHSV, Scalar(165, 102, 66), Scalar(180, 230, 204), redMaskH);
     frameRed = redMaskL | redMaskH;
+
+    imshow("redframe", frameRed);
 
     int region_y = 100;
     int region_r = 100;
@@ -270,22 +274,25 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     DEBUG("first: " + to_string(result.first.score) + " at x " + to_string(result.first.x) +" at y " + to_string(result.first.y));
     DEBUG("second: " + to_string(result.second.score) + " at x " + to_string(result.second.x) +" at y " + to_string(result.second.y));
 
-    // for (int j=result.first.y; j < binary.rows; j++)
-    // {
-    //     binary.at<uchar>(j,result.first.x) = 255;
-    //     binary.at<uchar>(j,result.second.x) = 255;
-    // }
-    // cv::imshow("board",binary);
+#ifdef SHOW_DEBUG
+    for (int j=result.first.y; j < binary.rows; j++)
+    {
+        binary.at<uchar>(j,result.first.x) = 255;
+        binary.at<uchar>(j,result.second.x) = 255;
+    }
+    cv::imshow("board",binary);
+#endif
 
     return result;
 }
 
-Mat VisionManager::processFrame(Mat frame)
+void VisionManager::processFrame(Mat frame, State **output)
 {
     DEBUG("processing frame");
     list<Stone> stones = findStones(frame);
     pair<BoardEdge,BoardEdge> boardEdges = findBoardEdges(frame);
 
+#ifdef SHOW_DEBUG
     Mat processedFrame = Mat::zeros(frame.size(), CV_8UC1);
 
     if (boardEdges.first.x > 0 & boardEdges.second.x > 0)
@@ -305,8 +312,54 @@ Mat VisionManager::processFrame(Mat frame)
         processedFrame.at<uchar>(it->y, it->x+1) = 255;
         processedFrame.at<uchar>(it->y, it->x-1) = 255;
     }
+    imshow("processed", processedFrame);
+#endif
 
-    return processedFrame;
+    BoardEdge left, right;
+    left = (boardEdges.first.x < boardEdges.second.x) ? boardEdges.first : boardEdges.second;
+    right = (boardEdges.first.x > boardEdges.second.x) ? boardEdges.first : boardEdges.second;
+    int columnWidth = (right.x - left.x) / 7;
+
+    list<Stone> columns[7];
+    for (list<Stone>::iterator it = stones.begin(); it != stones.end(); it++)
+    {
+        if (it->x < left.x)
+        {
+            WARN("detected object that was not a stone");
+            continue;
+        }
+
+        for (int i=1; i<=7; i++)
+        {
+            if (it->x < left.x + i * columnWidth)
+            {
+                columns[i-1].push_back(*it);
+                break;
+            }
+        }
+    }
+
+    for (int i=0; i < 7; i++)
+    {
+        columns[i].sort();
+        columns[i].reverse();
+
+        int count = 0;
+        for (list<Stone>::iterator it = columns[i].begin(); it != columns[i].end(); it++)
+        {
+            output[count][i] = it->yellow ? Yellow : Red;
+            count++;
+        }
+        for (; count < BOARD_HEIGHT; count++)
+        {
+            output[count][i] = Empty;
+        }
+    }
+}
+
+void updateBoard(Board& board)
+{
+
 }
 
 
@@ -316,38 +369,106 @@ int main(int argc, char **argv) {
     Mat rgbMat(Size(640,480),CV_8UC3,Scalar(0));
     Mat ownMat(Size(640,480),CV_8UC3,Scalar(0));
 
-    // Freenect::Freenect freenect;
-    // DEBUG("creating device");
-    // KinectManager& device = freenect.createDevice<KinectManager>(0);
-    // VisionManager vm(&device);
-    VisionManager vm;
+    Freenect::Freenect freenect;
+    DEBUG("creating device");
+    KinectManager& device = freenect.createDevice<KinectManager>(0);
+    VisionManager vm(&device);
+    // VisionManager vm;
 
     namedWindow("rgb",CV_WINDOW_AUTOSIZE);
-    // DEBUG("starting video");
-    // device.startVideo();
-    // while (!die) {
-    //     device.getVideo(rgbMat);
-    //     Mat test = device.processFrame(rgbMat);
-    //     cv::imshow("rgb", test);
-    //     char k = cvWaitKey(1000);
-    //     if( k == 27 ){
-    //         cvDestroyWindow("rgb");
-    //         break;
-    //     }
-    // }
-    //
-    // device.stopVideo();
+#ifdef USE_KINECT
+    DEBUG("starting video");
+    device.startVideo();
+    while (!die) {
+        device.getVideo(rgbMat);
+        cv::imshow("rgb", rgbMat);
 
+        State** board = new State*[BOARD_HEIGHT];
+        for (int row = 0; row < BOARD_HEIGHT; row++)
+        {
+            board[row] = new State[BOARD_WIDTH];
+            for (int col = 0; col < BOARD_WIDTH; col++)
+            {
+                board[row][col] = State::Empty;
+            }
+        }
+        vm.processFrame(rgbMat, board);
+
+        for(int row = BOARD_HEIGHT - 1; row >= 0 ; row--)
+        {
+            cout << " |";
+            for(int col = 0; col < BOARD_WIDTH; col++)
+            {
+                char c;
+                switch(board[row][col])
+                {
+                    case Yellow:
+                        c = 'Y';
+                        break;
+                    case Red:
+                        c = 'R';
+                        break;
+                    case Empty:
+                        c= '-';
+                        break;
+                }
+                cout << " " << c << " |";
+            }
+
+            cout << endl;
+        }
+        char k = cvWaitKey(0);
+        if( k == 27 ){
+            cvDestroyWindow("rgb");
+            break;
+        }
+    }
+    device.stopVideo();
+#else
     int cnt = 1;
     while (cnt < 8) {
         Mat img = imread("images/im" + to_string(cnt) + ".jpg");
         imshow("rgb", img);
-        Mat test = vm.processFrame(img);
-        cv::imshow("processed", test);
-        cv::imshow("rgb", img);
+
+        State** board = new State*[BOARD_HEIGHT];
+        for (int row = 0; row < BOARD_HEIGHT; row++)
+        {
+            board[row] = new State[BOARD_WIDTH];
+            for (int col = 0; col < BOARD_WIDTH; col++)
+            {
+                board[row][col] = State::Empty;
+            }
+        }
+        vm.processFrame(img, board);
+
+        for(int row = BOARD_HEIGHT - 1; row >= 0 ; row--)
+        {
+            cout << " |";
+            for(int col = 0; col < BOARD_WIDTH; col++)
+            {
+                char c;
+                switch(board[row][col])
+                {
+                    case Yellow:
+                        c = 'Y';
+                        break;
+                    case Red:
+                        c = 'R';
+                        break;
+                    case Empty:
+                        c= '-';
+                        break;
+                }
+                cout << " " << c << " |";
+            }
+
+            cout << endl;
+        }
+
         waitKey(0);
         cnt++;
     }
+#endif
 
     return 0;
 }
