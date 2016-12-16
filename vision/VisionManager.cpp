@@ -1,8 +1,12 @@
 #include <iostream>
+#include <string>
+#include <stack>
 
 #include "VisionManager.h"
 
 // #define SHOW_DEBUG
+#define SHOW_INFO
+#define SHOW_WARN
 
 using namespace cv;
 using namespace std;
@@ -10,152 +14,299 @@ using namespace std;
 void DEBUG(string msg)
 {
 #ifdef SHOW_DEBUG
-    cout << msg << endl;
+    cout << "DEBUG: " << msg << endl;
 #endif
 }
 
-VisionManager::VisionManager(freenect_context *_ctx, int _index)
-    : Freenect::FreenectDevice(_ctx, _index),
-    m_buffer(FREENECT_VIDEO_RGB),
-    m_gamma(2048), m_new_rgb_frame(false),
-    rgbMat(Size(640,480), CV_8UC3, Scalar(0)),
-    ownMat(Size(640,480),CV_8UC3,Scalar(0)) {
+void INFO(string msg)
+{
+#ifdef SHOW_INFO
+    cout << "INFO: " << msg << endl;
+#endif
+}
 
-        pthread_mutex_init( &m_rgb_mutex, NULL );
-        for( unsigned int i = 0 ; i < 2048 ; i++) {
-            float v = i/2048.0;
-            v = std::pow(v, 3)* 6;
-            m_gamma[i] = v*6*256;
+void WARN(string msg)
+{
+#ifdef SHOW_WARN
+    cout << "WARN: " << msg << endl;
+#endif
+}
+
+VisionManager::VisionManager()
+{
+    this->kinectManager = NULL;
+}
+
+VisionManager::VisionManager(KinectManager *km)
+{
+    this->kinectManager = km;
+}
+
+bool VisionManager::getVideo(Mat& output)
+{
+    if (kinectManager == NULL)
+        return false;
+
+    return kinectManager->getVideo(output);
+}
+
+bool VisionManager::grow_region(Mat& m, int y, int x, int i)
+{
+    int h = m.rows; // height
+    int w = m.cols; // width
+
+    stack<pair<int, int>> region;
+    region.push(make_pair(-1, -1));
+    pair<int, int> current_pos(y, x);
+
+    int region_size = 0;
+
+    while(!region.empty())
+    {
+        int k = current_pos.first;
+        int j = current_pos.second;
+
+        //top
+        if (k > 0 && m.at<uchar>(k-1,j) == 255)
+        {
+            region.push(make_pair(k-1, j));
+            m.at<uchar>(k-1,j) = i;
+            region_size++;
         }
+        //bottom
+        if (k < (h-1) && m.at<uchar>(k+1,j) == 255)
+        {
+            region.push(make_pair(k+1, j));
+            m.at<uchar>(k+1,j) = i;
+            region_size++;
+        }
+
+        //right
+        if (j < (w-1) && m.at<uchar>(k,j+1) == 255)
+        {
+            region.push(make_pair(k, j+1));
+            m.at<uchar>(k,j+1) = i;
+            region_size++;
+        }
+
+        //left
+        if (j > 0 && m.at<uchar>(k,j-1) == 255)
+        {
+            region.push(make_pair(k, j-1));
+            m.at<uchar>(k,j-1) = i;
+            region_size++;
+        }
+
+        current_pos = region.top();
+        region.pop();
+        if(current_pos.first == -1 || current_pos.second == -1)
+            break;
     }
 
-void VisionManager::VideoCallback(void* _rgb, uint32_t timestamp) {
-    pthread_mutex_lock(&m_rgb_mutex);
-    DEBUG("video callback");
-    uint8_t* rgb = static_cast<uint8_t*>(_rgb);
-    rgbMat.data = rgb;
-    m_new_rgb_frame = true;
-    pthread_mutex_unlock(&m_rgb_mutex);
-};
-
-bool VisionManager::getVideo(Mat& output) {
-    pthread_mutex_lock(&m_rgb_mutex);
-    DEBUG("getting frame");
-    if(m_new_rgb_frame) {
-        cvtColor(rgbMat, output, CV_RGB2BGR);
-        m_new_rgb_frame = false;
-        pthread_mutex_unlock(&m_rgb_mutex);
-        return true;
-    } else {
-        pthread_mutex_unlock(&m_rgb_mutex);
+    // if the region is too small, ignore it
+    if (region_size < REGION_THRESHOLD)
+    {
+        DEBUG("region only has size: " + to_string(region_size));
+        for (int y = 0; y < h; ++y)
+        {
+            for (int x = 0; x < w; ++x)
+            {
+                if (m.at<uchar>(y,x) == i)
+                    m.at<uchar>(y,x) = 0;
+            }
+        }
         return false;
     }
+    return true;
 }
 
-vector< vector<Point> > VisionManager::findObjects(Mat gray)
+Stone VisionManager::getRegionCentroid(Mat& m, int reg_nr, bool yellow)
 {
-    Mat canny_output;
-    vector< vector<Point> > objects;
-    vector<Vec4i> hierarchy;
+    int A = 0, mX = 0, mY = 0;
 
-    Canny(gray, canny_output, 50, 150, 3);
-    dilate(canny_output, canny_output, Mat());
-    erode(canny_output, canny_output, Mat());
-    findContours(gray, objects, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-
-    return objects;
-}
-
-Mat VisionManager::filterStones(Mat raw)
-{
-    Mat result = Mat::zeros(raw.size(), CV_8UC1);
-    for (int i=0; i < raw.size().width; i++)
+    for (int k = 0; k < m.rows; k++) // height
     {
-        for (int j=0; j < raw.size().height; j++)
+        for (int j = 0; j < m.cols; j++) // width
         {
-            Vec3b bgr_val = raw.at<Vec3b>(j,i);
-            if (bgr_val[0] > 100)
+            if (m.at<uchar>(k,j) == reg_nr)
             {
-                result.at<uchar>(j,i) = 255;
+                A++;
+                mX += j;
+                mY += k;
             }
         }
     }
+    Stone result = {mX/A, mY/A, yellow};
     return result;
 }
 
-Mat VisionManager::filterBoard(Mat raw)
+list<Stone> VisionManager::findStones(Mat raw)
 {
-    Mat result = Mat::zeros(raw.size(), CV_8UC1);
-    for (int i=0; i < raw.size().width; i++)
+    INFO("finding all stones");
+    list<Stone> result;
+    Mat frameHSV(Size(640,480), CV_8UC3, Scalar(0));
+    cvtColor(raw, frameHSV, CV_BGR2HSV);
+
+    Mat redMaskL = Mat::zeros(raw.size(), CV_8UC1);
+    Mat redMaskH = Mat::zeros(raw.size(), CV_8UC1);
+
+    Mat frameYellow = Mat::zeros(raw.size(), CV_8UC1);
+    Mat frameRed = Mat::zeros(raw.size(), CV_8UC1);
+
+    Mat processedFrame = Mat::zeros(raw.size(), CV_8UC3);
+
+    // find yellow
+    inRange(frameHSV, Scalar(20, 127, 102), Scalar(35, 204, 230), frameYellow);
+    // find red
+    inRange(frameHSV, Scalar(0, 102, 102), Scalar(10, 230, 204), redMaskL);
+    inRange(frameHSV, Scalar(165, 102, 102), Scalar(180, 230, 204), redMaskH);
+    frameRed = redMaskL | redMaskH;
+
+    int region_y = 100;
+    int region_r = 100;
+    for (int k = 0; k < frameYellow.rows; k++) // height
     {
-        for (int j=0; j < raw.size().height; j++)
+        for (int j = 0; j < frameYellow.cols; j++) // width
         {
-            Vec3b bgr_val = raw.at<Vec3b>(j,i);
-            if (bgr_val[0] > 100 && bgr_val[1] < 110 && bgr_val[2] < 110)
+            if (frameYellow.at<uchar>(k,j) == 255)
             {
-                result.at<uchar>(j,i) = 255;
+                bool valid_region = grow_region(frameYellow, k, j, region_y);
+                if (valid_region)
+                {
+                    Stone s = getRegionCentroid(frameYellow, region_y, true);
+                    result.push_back(s);
+                    INFO("region found, with centroid at " + to_string(s.x) + " " + to_string(s.y));
+                    region_y = (region_y + 10) % 256;
+                }
+            }
+
+            if (frameRed.at<uchar>(k,j) == 255)
+            {
+                bool valid_region = grow_region(frameRed, k, j, region_r);
+                if (valid_region)
+                {
+                    Stone s = getRegionCentroid(frameRed, region_r, false);
+                    result.push_back(s);
+                    INFO("region found, with centroid at " + to_string(s.x) + " " + to_string(s.y));
+                    region_r = (region_r + 10) % 256;
+                }
             }
         }
     }
 
-    // Mat canny_output;
-    // vector< vector<Point> > objects;
-    // vector<Vec4i> hierarchy;
+    return result;
+}
 
-    // Canny(result, canny_output, 50, 150, 3);
-    // dilate(canny_output, canny_output, Mat());
-    // erode(canny_output, canny_output, Mat());
+pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
+{
+    pair<BoardEdge,BoardEdge> result;
+    result.first.x = -1;
+    result.second.x = -1;
+    Mat binary = Mat::zeros(raw.size(), CV_8UC1);
+
+    // blue = 255, other = 0
+    for (int i=0; i < raw.cols; i++)
+    {
+        for (int j=0; j < raw.rows; j++)
+        {
+            Vec3b bgr_val = raw.at<Vec3b>(j,i);
+            if (bgr_val[0] > 70 &&
+                bgr_val[1] < 100 &&
+                bgr_val[2] < 100 &&
+                (bgr_val[1] < 70 || bgr_val[2] < 70))
+            {
+                binary.at<uchar>(j,i) = 155;
+            }
+        }
+    }
+
+    // find the vertical edges of the board
+    list<BoardEdge> edgeList;
+    int rectWidth = 5;
+    int rectHeight = 100;
+    for (int i = rectWidth; i < raw.cols - rectWidth; i+=10)
+    {
+        for (int j = 0; j < raw.rows - rectHeight; j+=10)
+        {
+            int currScore = 0;
+            for (int di = -rectWidth; di <= rectWidth; di++)
+            {
+                for (int dj = 0; dj <= rectHeight; dj++)
+                {
+                    int blue = (binary.at<uchar>(j+dj,i+di) == 155) ? 1 : -1;
+                    int tmp = di < 0 ? -1 : 1;
+                    currScore += tmp * blue;
+                }
+            }
+            if (abs(currScore) > 350)
+            {
+                BoardEdge newEdge = {i, j, abs(currScore)};
+                edgeList.push_back(newEdge);
+            }
+        }
+    }
+
+    // sort list on scores
+    edgeList.sort();
+    edgeList.reverse();
+
+    INFO("number of edges: " +  to_string(edgeList.size()));
+
+    list<BoardEdge>::iterator it=edgeList.begin();
+    if(it==edgeList.end())
+        return result;
+
+    result.first = {it->x,it->y,it->score};
+    it = edgeList.end();
+    it--;
+    result.second = {it->x,it->y,it->score};
+
+    if (result.second.x < 0)
+    {
+        WARN("only one edge found");
+        return result;
+    }
+
+    DEBUG("first: " + to_string(result.first.score) + " at x " + to_string(result.first.x) +" at y " + to_string(result.first.y));
+    DEBUG("second: " + to_string(result.second.score) + " at x " + to_string(result.second.x) +" at y " + to_string(result.second.y));
+
+    // for (int j=result.first.y; j < binary.rows; j++)
+    // {
+    //     binary.at<uchar>(j,result.first.x) = 255;
+    //     binary.at<uchar>(j,result.second.x) = 255;
+    // }
+    // cv::imshow("board",binary);
+
     return result;
 }
 
 Mat VisionManager::processFrame(Mat frame)
 {
     DEBUG("processing frame");
-    // Mat frameHSV(Size(640,480), CV_8UC3, Scalar(0));
-    // Mat redMaskL = Mat::zeros(frame.size(), CV_8UC1);
-    // Mat redMaskH = Mat::zeros(frame.size(), CV_8UC1);
+    list<Stone> stones = findStones(frame);
+    pair<BoardEdge,BoardEdge> boardEdges = findBoardEdges(frame);
 
-    // Mat frameYellow = Mat::zeros(frame.size(), CV_8UC1);
-    // Mat frameRed = Mat::zeros(frame.size(), CV_8UC1);
-    // Mat frameBlue = Mat::zeros(frame.size(), CV_8UC1);
+    Mat processedFrame = Mat::zeros(frame.size(), CV_8UC1);
 
-    // cvtColor(frame, frameHSV, CV_BGR2HSV);
+    if (boardEdges.first.x > 0 & boardEdges.second.x > 0)
+    {
+        for (int j=0; j < frame.rows; j++)
+        {
+            processedFrame.at<uchar>(j,boardEdges.first.x) = 255;
+            processedFrame.at<uchar>(j,boardEdges.second.x) = 255;
+        }
+    }
 
-    // // find the yellow stones
-    // inRange(frameHSV, Scalar(20, 150, 150), Scalar(30, 255, 255), frameYellow);
-    // // find the red stones
-    // inRange(frameHSV, Scalar(0, 150, 100), Scalar(10, 255, 255), redMaskL);
-    // inRange(frameHSV, Scalar(170, 150, 100), Scalar(180, 255, 255), redMaskH);
-    // frameRed = redMaskL | redMaskH;
-    // // find the blue board
-    // inRange(frameHSV, Scalar(60, 80, 80), Scalar(160, 255, 255), frameBlue);
+    for (list<Stone>::iterator it = stones.begin(); it != stones.end(); it++)
+    {
+        processedFrame.at<uchar>(it->y, it->x) = 255;
+        processedFrame.at<uchar>(it->y+1, it->x) = 255;
+        processedFrame.at<uchar>(it->y-1, it->x) = 255;
+        processedFrame.at<uchar>(it->y, it->x+1) = 255;
+        processedFrame.at<uchar>(it->y, it->x-1) = 255;
+    }
 
-
-    // vector< vector<Point> > contours = findObjects(frameBlue);
-    // Scalar color_black = Scalar(255,255,0);
-    // Mat drawing = Mat::zeros(frame.size(), CV_8UC3);
-    // for( int i = 0; i< contours.size(); i++ )
-    // {
-    //     drawContours(drawing, contours, i, color_black, CV_FILLED);
-    // }
-
-
-    // return frameRed | frameYellow | frameBlue;
-    return filterBoard(frame);
-
-//     vector<Mat> splited_frame;
-//     split(frame, splited_frame);
-//     Mat drawing = Mat::zeros(frame.size(), CV_8UC3);
-//     for (size_t i = 0; i < splited_frame.size(); i++)
-//     {
-//         threshold(splited_frame[i], splited_frame[i], 150, 255, cv::THRESH_BINARY);
-//         vector<vector<Point>> contours = findObjects(splited_frame[i]);
-//         Scalar color_black = Scalar(255,255,255);
-//         for (int i = 0; i<contours.size(); i++)
-//             drawContours(drawing, contours,i, color_black, CV_FILLED);
-//     }
-
-//     return drawing;
+    return processedFrame;
 }
 
 
@@ -165,24 +316,38 @@ int main(int argc, char **argv) {
     Mat rgbMat(Size(640,480),CV_8UC3,Scalar(0));
     Mat ownMat(Size(640,480),CV_8UC3,Scalar(0));
 
-    Freenect::Freenect freenect;
-    DEBUG("creating device");
-    VisionManager& device = freenect.createDevice<VisionManager>(0);
+    // Freenect::Freenect freenect;
+    // DEBUG("creating device");
+    // KinectManager& device = freenect.createDevice<KinectManager>(0);
+    // VisionManager vm(&device);
+    VisionManager vm;
 
     namedWindow("rgb",CV_WINDOW_AUTOSIZE);
-    DEBUG("starting video");
-    device.startVideo();
-    while (!die) {
-        device.getVideo(rgbMat);
-        Mat test = device.processFrame(rgbMat);
-        cv::imshow("rgb", test);
-        char k = cvWaitKey(1000);
-        if( k == 27 ){
-            cvDestroyWindow("rgb");
-            break;
-        }
+    // DEBUG("starting video");
+    // device.startVideo();
+    // while (!die) {
+    //     device.getVideo(rgbMat);
+    //     Mat test = device.processFrame(rgbMat);
+    //     cv::imshow("rgb", test);
+    //     char k = cvWaitKey(1000);
+    //     if( k == 27 ){
+    //         cvDestroyWindow("rgb");
+    //         break;
+    //     }
+    // }
+    //
+    // device.stopVideo();
+
+    int cnt = 1;
+    while (cnt < 8) {
+        Mat img = imread("images/im" + to_string(cnt) + ".jpg");
+        imshow("rgb", img);
+        Mat test = vm.processFrame(img);
+        cv::imshow("processed", test);
+        cv::imshow("rgb", img);
+        waitKey(0);
+        cnt++;
     }
 
-    device.stopVideo();
     return 0;
 }

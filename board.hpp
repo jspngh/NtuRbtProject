@@ -18,10 +18,11 @@ class Board
         State getState(int row, int col);
         void setState(int row, int col, State state);
         State* getBoard();
-	friend std::ostream& operator<<(std::ostream& os, const Board& board);
+        friend std::ostream& operator<<(std::ostream& os, const Board& board);
+
     private:
         State **board;
-	const char* state2str[3] = { "X", "O", " "};
+        const char* state2str[3] = { "X", "O", " "};
 };
 
 
