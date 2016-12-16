@@ -22,6 +22,11 @@ Board::~Board()
 }
 
 
+State Board::getState(int row, int col)
+{
+    return board[row][col];
+}
+
 bool Board::isMoveLegal(int col)
 {
     return board[0][col] == State::Empty;
@@ -46,14 +51,12 @@ ostream& operator<<(ostream& os, const Board& b)
     os << b.delimeter << endl;
     for(int row = 0; row < BOARD_HEIGHT; row++)
     {
-        for(int col = 0; col < BOARD_WIDTH; col++)
+        for(int col = 0; col < BOARD_WIDTH - 1; col++)
         {
-            string append = " |";
-            if (col == BOARD_WIDTH - 1)
-                append = "\n";
-
-            os << " " << b.state2str[b.board[row][col]] << append;
+            os << " " << b.state2str[b.board[row][col]] << " |";
         }
+
+        os << " " << b.state2str[b.board[row][BOARD_WIDTH - 1]] << "\n";
     }
     return os;
 }

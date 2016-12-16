@@ -1,4 +1,11 @@
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <string>
+
 #include "minimax.hpp"
 
 using namespace std;
@@ -12,6 +19,9 @@ struct Node
     int score;
     int move;
 };
+
+string exec(const char* cmd);
+void board_to_csv(Board board);
 
 int negamax(int player, Board board, int depth)
 {
@@ -64,6 +74,13 @@ int nextMove(int player, Board board, int depth)
     return best.move;
 }
 
+int nextMovePython(int player, Board board, int depth)
+{
+    board_to_csv(board);
+    string col = exec("python2 minimax.py");
+    return stoi(col);
+}
+
 
 // TODO: check correctness, the evaluation is independent of the player
 // i.e. this value is always calculated from the point of view of player 1
@@ -85,4 +102,33 @@ int evaluateBoard(int player, Board board)
         return -100000;
     else
         return fours * 100000 + threes * 100 + twos;
+}
+
+void board_to_csv(Board board)
+{
+    ofstream file;
+    file.open ("board.csv");
+    for (int row = 0; row < BOARD_HEIGHT; row++)
+    {
+        for (int col = 0; col < BOARD_WIDTH - 1; col++)
+        {
+            file << board.getState(row, col) << ",";
+        }
+
+        file << board.getState(row, BOARD_WIDTH - 1) << "\n";
+    }
+    file.close();
+}
+
+string exec(const char* cmd)
+{
+    char buffer[128];
+    std::string result = "";
+    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) throw std::runtime_error("popen() failed!");
+    while (!feof(pipe.get())) {
+        if (fgets(buffer, 128, pipe.get()) != NULL)
+            result += buffer;
+    }
+    return result;
 }

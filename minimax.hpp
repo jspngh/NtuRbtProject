@@ -14,6 +14,8 @@
  */
 int nextMove(int player, Board board, int depth);
 
+int nextMovePython(int player, Board board, int depth);
+
 
 /**
  * Simple heuristic to evaluate board configurations

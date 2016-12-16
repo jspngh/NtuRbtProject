@@ -2,7 +2,6 @@
 #define BOARD_H
 
 #include <iostream>
-#include <ostream>
 #include <string>
 
 #define BOARD_HEIGHT 6

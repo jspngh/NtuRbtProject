@@ -8,6 +8,7 @@ using namespace std;
 int main (int argc, char* args[])
 {
     Board b;
+
     int player_user = 0;
     int player_ai = 1;
     int col;
@@ -32,6 +33,7 @@ int main (int argc, char* args[])
 
         // AI's move
         col = nextMove(player_ai, b, depth);
+        cout << "next move: " << col << endl;
         b.doMove(col, player_ai);
 
         // check if AI won
