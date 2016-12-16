@@ -25,6 +25,8 @@ class Board
         }
         State getState(int row, int col);
         void setState(int row, int col, State state);
+        State** getBoardCopy();
+
         bool isMoveLegal(int col);
         bool doMove(int col, int player);
 

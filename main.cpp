@@ -32,7 +32,7 @@ int main (int argc, char* args[])
         }
 
         // AI's move
-        col = nextMove(player_ai, b, depth);
+        col = nextMovePython(player_ai, b, depth);
         cout << "next move: " << col << endl;
         b.doMove(col, player_ai);
 

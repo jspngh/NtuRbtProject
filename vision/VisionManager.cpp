@@ -286,7 +286,7 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     return result;
 }
 
-void VisionManager::processFrame(Mat frame, State **output)
+void VisionManager::processFrame(Mat frame, State** output)
 {
     DEBUG("processing frame");
     list<Stone> stones = findStones(frame);
@@ -357,9 +357,48 @@ void VisionManager::processFrame(Mat frame, State **output)
     }
 }
 
-void updateBoard(Board& board)
+bool updateBoard(Board& board)
 {
+    getVideo(rgbMat);
+    State** tmp = board.getBoardCopy();
 
+    vm.processFrame(rgbMat, tmp);
+
+    int diff = 0;
+    int xdiff = -1, ydiff = -1;
+    for (int i=0; i<BOARD_HEIGHT; i++)
+    {
+        for (int j=0; j<BOARD_WIDTH; j++)
+        {
+            if (tmp[i][j] != board.getState(i,j))
+            {
+                if (board.getState(i,j) != Empty)
+                {
+                    WARN("processing failed");
+                    return false;
+                }
+                diff++;
+                xdiff = i;
+                ydiff = j;
+            }
+        }
+    }
+
+    if (diff != 1)
+    {
+        WARN("processing failed");
+        return false;
+    }
+
+    board.setState(xdiff, ydiff, tmp[xdiff][ydiff]);
+
+    for (int i=0; i<BOARD_HEIGHT; i++)
+    {
+        delete [] tmp[i];
+    }
+    delete [] tmp;
+
+    return true;
 }
 
 

@@ -21,10 +21,29 @@ Board::~Board()
 {
 }
 
-
 State Board::getState(int row, int col)
 {
     return board[row][col];
+}
+
+void Board::setState(int row, int col, State state)
+{
+    board[row][col] = state;
+}
+
+State** Board::getBoardCopy()
+{
+    State** tmp = new State*[BOARD_HEIGHT];
+    for (int i=0; i<BOARD_HEIGHT; i++)
+    {
+        tmp[i] = new State[BOARD_WIDTH];
+        for (int j=0; j<BOARD_WIDTH; j++)
+        {
+            tmp[i][j] = board[i][j];
+        }
+    }
+
+    return tmp;
 }
 
 bool Board::isMoveLegal(int col)

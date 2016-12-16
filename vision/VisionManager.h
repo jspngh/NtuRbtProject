@@ -61,14 +61,14 @@ struct BoardEdge
 };
 
 class VisionManager{
-	public:
-		VisionManager();
-		VisionManager(KinectManager *km);
+    public:
+        VisionManager();
+        VisionManager(KinectManager *km);
 
-        void updateBoard(Board& board);
+        bool updateBoard(Board& board);
 
-		bool getVideo(cv::Mat& output);
-        void processFrame(cv::Mat frame, State **output);
+        bool getVideo(cv::Mat& output);
+        void processFrame(cv::Mat frame, State** output);
 
     private:
         KinectManager *kinectManager;
