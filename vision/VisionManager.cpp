@@ -1,10 +1,11 @@
+#include <unistd.h>
 #include <iostream>
 #include <string>
 #include <stack>
 
 #include "VisionManager.h"
 
-#define SHOW_DEBUG
+// #define SHOW_DEBUG
 #define SHOW_INFO
 #define SHOW_WARN
 
@@ -42,6 +43,27 @@ VisionManager::VisionManager()
 VisionManager::VisionManager(KinectManager *km)
 {
     this->kinectManager = km;
+}
+
+bool VisionManager::initVision()
+{
+    kinectManager->startVideo();
+    Mat tmpMat(Size(640,480),CV_8UC3,Scalar(0));
+    bool init_success = false;
+    for (int i=0; i<10 && !init_success; i++)
+    {
+        init_success = getVideo(tmpMat);
+        usleep(1000000);
+        // imshow("test", tmpMat);
+        // waitKey(0);
+    }
+
+    return init_success;
+}
+
+void VisionManager::stopVision()
+{
+    kinectManager->stopVideo();
 }
 
 bool VisionManager::getVideo(Mat& output)
@@ -146,8 +168,6 @@ list<Stone> VisionManager::findStones(Mat raw)
 {
     INFO("finding all stones");
     list<Stone> result;
-    Mat frameHSV(Size(640,480), CV_8UC3, Scalar(0));
-    cvtColor(raw, frameHSV, CV_BGR2HSV);
 
     Mat redMaskL = Mat::zeros(raw.size(), CV_8UC1);
     Mat redMaskH = Mat::zeros(raw.size(), CV_8UC1);
@@ -158,10 +178,10 @@ list<Stone> VisionManager::findStones(Mat raw)
     Mat processedFrame = Mat::zeros(raw.size(), CV_8UC3);
 
     // find yellow
-    inRange(frameHSV, Scalar(20, 76, 102), Scalar(35, 204, 230), frameYellow);
+    inRange(raw, Scalar(20, 76, 102), Scalar(35, 204, 255), frameYellow);
     // find red
-    inRange(frameHSV, Scalar(0, 102, 66), Scalar(10, 240, 204), redMaskL);
-    inRange(frameHSV, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
+    inRange(raw, Scalar(0, 102, 66), Scalar(10, 240, 204), redMaskL);
+    inRange(raw, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
     frameRed = redMaskL | redMaskH;
 
     imshow("redframe", frameRed);
@@ -206,23 +226,9 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     pair<BoardEdge,BoardEdge> result;
     result.first.x = -1;
     result.second.x = -1;
-    Mat binary = Mat::zeros(raw.size(), CV_8UC1);
-
-    // blue = 255, other = 0
-    for (int i=0; i < raw.cols; i++)
-    {
-        for (int j=0; j < raw.rows; j++)
-        {
-            Vec3b bgr_val = raw.at<Vec3b>(j,i);
-            if (bgr_val[0] > 70 &&
-                bgr_val[1] < 100 &&
-                bgr_val[2] < 100 &&
-                (bgr_val[1] < 70 || bgr_val[2] < 70))
-            {
-                binary.at<uchar>(j,i) = 155;
-            }
-        }
-    }
+    Mat frameBlue = Mat::zeros(raw.size(), CV_8UC1);
+    // find blue
+    inRange(raw, Scalar(95, 63, 76), Scalar(110, 230, 230), frameBlue);
 
     // find the vertical edges of the board
     list<BoardEdge> edgeList;
@@ -237,7 +243,7 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
             {
                 for (int dj = 0; dj <= rectHeight; dj++)
                 {
-                    int blue = (binary.at<uchar>(j+dj,i+di) == 155) ? 1 : -1;
+                    int blue = (frameBlue.at<uchar>(j+dj,i+di) == 255) ? 1 : -1;
                     int tmp = di < 0 ? -1 : 1;
                     currScore += tmp * blue;
                 }
@@ -275,12 +281,12 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     DEBUG("second: " + to_string(result.second.score) + " at x " + to_string(result.second.x) +" at y " + to_string(result.second.y));
 
 #ifdef SHOW_DEBUG
-    for (int j=result.first.y; j < binary.rows; j++)
+    for (int j=result.first.y; j < frameBlue.rows; j++)
     {
-        binary.at<uchar>(j,result.first.x) = 255;
-        binary.at<uchar>(j,result.second.x) = 255;
+        frameBlue.at<uchar>(j,result.first.x) = 255;
+        frameBlue.at<uchar>(j,result.second.x) = 255;
     }
-    cv::imshow("board",binary);
+    cv::imshow("board",frameBlue);
 #endif
 
     return result;
@@ -289,8 +295,10 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
 void VisionManager::processFrame(Mat frame, State** output)
 {
     DEBUG("processing frame");
-    list<Stone> stones = findStones(frame);
-    pair<BoardEdge,BoardEdge> boardEdges = findBoardEdges(frame);
+    Mat frameHSV(Size(640,480), CV_8UC3, Scalar(0));
+    cvtColor(frame, frameHSV, CV_BGR2HSV);
+    list<Stone> stones = findStones(frameHSV);
+    pair<BoardEdge,BoardEdge> boardEdges = findBoardEdges(frameHSV);
 
 #ifdef SHOW_DEBUG
     Mat processedFrame = Mat::zeros(frame.size(), CV_8UC1);
@@ -344,13 +352,13 @@ void VisionManager::processFrame(Mat frame, State** output)
         columns[i].sort();
         columns[i].reverse();
 
-        int count = 0;
+        int count = BOARD_HEIGHT-1;
         for (list<Stone>::iterator it = columns[i].begin(); it != columns[i].end(); it++)
         {
             output[count][i] = it->yellow ? Yellow : Red;
-            count++;
+            count--;
         }
-        for (; count < BOARD_HEIGHT; count++)
+        for (; count >= 0; count--)
         {
             output[count][i] = Empty;
         }
@@ -433,7 +441,7 @@ bool VisionManager::updateBoard(Board& board)
 //         }
 //         vm.processFrame(rgbMat, board);
 
-//         for(int row = BOARD_HEIGHT - 1; row >= 0 ; row--)
+//         for(int row=0; row < BOARD_HEIGHT; row++)
 //         {
 //             cout << " |";
 //             for(int col = 0; col < BOARD_WIDTH; col++)

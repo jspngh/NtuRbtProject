@@ -23,6 +23,7 @@ class Board
 
             return *this;
         }
+
         State getState(int row, int col);
         void setState(int row, int col, State state);
         State** getBoardCopy();
@@ -40,7 +41,7 @@ class Board
 
         /**
          * Return:
-         *          -1 -- if the game is not finished
+         *         -1  -- if the game is not finished
          *          0  -- if player 0 (Red) has won
          *          1  -- if player 1 (Yellow) has won
          */

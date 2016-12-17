@@ -65,6 +65,9 @@ class VisionManager{
         VisionManager();
         VisionManager(KinectManager *km);
 
+        bool initVision();
+        void stopVision();
+
         bool updateBoard(Board& board);
 
         bool getVideo(cv::Mat& output);
