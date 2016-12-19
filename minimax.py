@@ -8,6 +8,7 @@
 # February 27, 2012
 
 import random
+import time
 import csv
 
 class Minimax(object):
@@ -222,7 +223,7 @@ class Minimax(object):
 
         return total
 
-def main():
+def read_board():
     board = []
 
     with open('board.csv', 'rb') as file:
@@ -240,8 +241,22 @@ def main():
             board.append(board_row)
 
     reversed_board = board[::-1]
+    return reversed_board
 
-    AI = Minimax(reversed_board)
-    print AI.bestMove(4, reversed_board, 'o')[0]
 
-main()
+def time_AI(N):
+    for depth in range(1, N + 1):
+        board = read_board()
+        AI = Minimax(board)
+        then = time.time()
+        AI.bestMove(depth, board, 'o')[0]
+        print time.time() - then
+
+
+def main():
+    board = read_board()
+    AI = Minimax(board)
+    print AI.bestMove(4, board, 'o')[0]
+
+# main()
+time_AI(8)
