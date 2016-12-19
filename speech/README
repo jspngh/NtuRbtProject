@@ -1,0 +1,10 @@
+# DEPENDENCIES:
+
+- PyAudio
+Install via pip: sudo pip install PyAudio.
+
+- speech_recognition
+Install via pip: sudo pip install SpeechRecognition
+
+- SphinxPocket
+Install via pip: sudo pip install PocketSphinx
