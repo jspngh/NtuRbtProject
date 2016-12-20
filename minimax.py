@@ -127,6 +127,12 @@ class Minimax(object):
             Heuristic is (num of 4-in-a-rows)*99999 + (num of 3-in-a-rows)*100 +
             (num of 2-in-a-rows)*10 - (num of opponent 4-in-a-rows)*99999 - (num of opponent
             3-in-a-rows)*100 - (num of opponent 2-in-a-rows)*10
+
+
+            SUGGESTION: Change the heuristic to recognize when both players can finish a row in
+            the same piece. Heuristic is 3*(num of 4-in-a-rows)*99999 + 3*(num of 3-in-a-rows)*100 +
+            3*(num of 2-in-a-rows)*10 - (num of opponent 4-in-a-rows)*99999 - (num of opponent
+            3-in-a-rows)*100 - (num of opponent 2-in-a-rows)*10
         """
         if color == self.colors[0]:
             o_color = self.colors[1]
@@ -136,13 +142,31 @@ class Minimax(object):
         my_fours = self.checkForStreak(state, color, 4)
         my_threes = self.checkForStreak(state, color, 3)
         my_twos = self.checkForStreak(state, color, 2)
-        opp_fours = self.checkForStreak(state, o_color, 4)
+        #opp_fours = self.checkForStreak(state, o_color, 4)
         #opp_threes = self.checkForStreak(state, o_color, 3)
         #opp_twos = self.checkForStreak(state, o_color, 2)
+        
         if opp_fours > 0:
             return -100000
         else:
             return my_fours*100000 + my_threes*100 + my_twos
+        
+        """
+	-------------Suggestion---------------
+
+        max = my_twos
+        if my_threes>max: max = my_threes
+		if my_fours>max: max = my_fours
+
+		min = opp_twos
+		if opp_threes>min: min = opp_threes
+		if opp_fours>min: min = opp_fours
+
+		return 3*max - min
+		"""
+
+
+        
 
     def checkForStreak(self, state, color, streak):
         count = 0

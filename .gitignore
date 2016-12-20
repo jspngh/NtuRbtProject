@@ -5,6 +5,7 @@
 
 *.pdf
 #*.py
+*taghl
 
 *.swp
 
