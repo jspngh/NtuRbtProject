@@ -65,7 +65,13 @@ int main (int argc, char* args[])
 {
     Board b;
     Robot* robot = new Robot();
-    AI ai(robot);
+    S2Tcomm c;
+    AI ai(robot, c);
+
+    while (true)
+    {
+        usleep(1000000);
+    }
 
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
