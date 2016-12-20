@@ -1,6 +1,10 @@
 hello
-test
+well played
 your turn
 how are you
 start playing
-you are to easy
+you are too easy
+you suck
+alright
+go faster please
+move faster please
