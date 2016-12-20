@@ -5,6 +5,8 @@
 #include "board.hpp"
 #include "minimax.hpp"
 #include "vision/VisionManager.h"
+#include "robot/robot.hpp"
+#include "ai/AI.h"
 
 using namespace std;
 
@@ -61,8 +63,9 @@ void time_AI(int N)
 
 int main (int argc, char* args[])
 {
-    time_AI(8);
-    return 0;
+    Board b;
+    Robot* robot = new Robot();
+    AI ai(robot);
 
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
@@ -73,7 +76,6 @@ int main (int argc, char* args[])
         exit(-1);
     }
 
-    Board b;
 
     int player_user = 0;
     int player_ai = 1;
@@ -97,6 +99,7 @@ int main (int argc, char* args[])
         col = nextMovePython(player_ai, b, depth);
         cout << "next move: " << col << endl;
         b.doMove(col, player_ai);
+        ai.doMove(col);
 
         // check if AI won
         if (b.getWinner() != -1)
