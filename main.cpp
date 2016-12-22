@@ -12,12 +12,6 @@ using namespace std;
 
 void getUserMove(Board& b, VisionManager& vm)
 {
-    // user move
-    // cout << "give a column please (1-7): ";
-    // cin >> col;
-    // col = col - 1;
-    // b.doMove(col, player_user);
-
     cout << "Player, it's your turn now!" << endl;
 
     bool stop = false;
@@ -128,35 +122,14 @@ void waitRobotMove(Board& b, VisionManager& vm, int expected_col)
     cout << "robot made its move" << endl;
 }
 
-void time_AI(int N)
-{
-    cout << "N,time" << endl;
-    int player_user = 0;
-    int player_ai = 1;
-    for (int depth = 1; depth <= N; depth++)
-    {
-        Board b;
-
-        // random user move
-        b.doMove(4, player_user);
-
-        // time the duration of the AI calculations
-        clock_t begin = clock();
-        int col = nextMovePython(player_ai, b, depth);
-        clock_t end = clock();
-
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        cout << depth << "," << elapsed_secs << endl;
-    }
-}
-
 
 int main (int argc, char* args[])
 {
     Board b;
     Robot* robot = new Robot();
     S2Tcomm c;
-    AI ai(robot, c);
+    Algorithm algorithm;
+    AI ai(robot, c, algorithm, b);
 
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
@@ -187,9 +160,7 @@ int main (int argc, char* args[])
         }
 
         // AI's move
-        col = nextMove(player_ai, b, depth);
-        cout << "next move: " << col << endl;
-        ai.doMove(col);
+        col = ai.doMove();
         waitRobotMove(b, vm, col);
 
         // b.doMove(col, player_ai);

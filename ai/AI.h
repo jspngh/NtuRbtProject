@@ -4,6 +4,7 @@
 
 #include "../board.hpp"
 #include "../robot/robot.hpp"
+#include "../algorithm/minimax.hpp"
 
 struct S2Tcomm
 {
@@ -37,7 +38,7 @@ public:
         TOO_HARD = 5,
     };
 
-    AI(Robot* robot, S2Tcomm c);
+    AI(Robot* robot, S2Tcomm c, Algorithm& algorithm, Board& board);
 
     // in different thread
     void processVoice();
@@ -45,7 +46,7 @@ public:
     void processCmd(VoiceCommand cmd);
 
     void userMove(Board& b);
-    void doMove(int col);
+    int doMove();
 
     bool isWinning();
     bool isLosing();
@@ -54,6 +55,7 @@ public:
 private:
     Robot* mRobot;
     Board mBoard;
+    Algorithm mAlgorithm;
 
     S2Tcomm mComm;
     std::thread mVoiceThread;

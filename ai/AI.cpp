@@ -17,10 +17,12 @@
 
 using namespace std;
 
-AI::AI(Robot* robot, S2Tcomm c) :
+AI::AI(Robot* robot, S2Tcomm c, Algorithm& algo, Board& board):
     mVoiceThread(&AI::processVoice, this),
     mRobot(robot),
-    mComm(c)
+    mComm(c),
+    mAlgorithm(algo),
+    mBoard(board)
 {
     mBehaviour = 0;
     mProcVoice = true;
@@ -84,34 +86,46 @@ void AI::processCmd(VoiceCommand cmd)
     switch (cmd)
     {
         case HELLO:
+            cout << "HELLO" << endl;
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
             break;
         case HOW_ARE_YOU:
+            cout << "HOW ARE YOU" << endl;
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
             break;
         case COMPLIMENT:
+            cout << "COMPLEMENT" << endl;
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
             break;
         case INSULT:
+            cout << "INSULT" << endl;
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
             break;
         case TOO_EASY:
+            cout << "TOO EASY" << endl;
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
+
+            // adjust level
+            mAlgorithm.increaseDepth();
             break;
         case TOO_HARD:
+            cout << "TOO HARD" << endl;
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
+
+            // adjust level
+            mAlgorithm.decreaseDepth();
             break;
     }
 
@@ -127,14 +141,18 @@ void AI::userMove(Board& b)
 
 }
 
-void AI::doMove(int col)
+int AI::doMove()
 {
-    cout << "doing ma move" << endl;
+    int player_ai = 1;
+    int col = mAlgorithm.nextMovePython(player_ai, mBoard);
+    cout << "AI selected col: " << col << endl;
+
     mRobot->resetJoints();
-    cout << "joints reset" << endl;
     mRobot->pickUpPiece();
     mRobot->dropPiece(col);
     mRobot->resetJoints();
+
+    return col;
 }
 
 bool AI::isWinning()

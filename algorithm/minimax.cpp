@@ -5,14 +5,12 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <cmath>
 
 #include "minimax.hpp"
 
 using namespace std;
 
-#define DEBUG false
-#define INF 99999999
-#define FIRST_MOVE -1
 
 struct Node
 {
@@ -20,10 +18,26 @@ struct Node
     int move;
 };
 
-string exec(const char* cmd);
-void board_to_csv(Board board);
 
-int negamax(int player, Board board, int depth)
+void Algorithm::setDepth(int depth)
+{
+    this->mDepth = depth;
+}
+
+
+void Algorithm::increaseDepth()
+{
+    this->mDepth = max(MIN_DEPTH, this->mDepth - 1);
+}
+
+
+void Algorithm::decreaseDepth()
+{
+    this->mDepth = min(MAX_DEPTH, this->mDepth + 1);
+}
+
+
+int Algorithm::negamax(int player, Board board, int depth)
 {
     if (depth == 0 || board.isFinished()) // TODO: add check to to see if board is completely filled
     {
@@ -46,7 +60,7 @@ int negamax(int player, Board board, int depth)
     return best_score;
 }
 
-int nextMove(int player, Board board, int depth)
+int Algorithm::nextMove(int player, Board board)
 {
     vector<Node> legal_moves;
     for (int col = 0; col < BOARD_WIDTH; col++)
@@ -55,7 +69,7 @@ int nextMove(int player, Board board, int depth)
         {
             Board temp = board;
             temp.doMove(col, player);
-            int score = - negamax(-player, temp, depth - 1);
+            int score = - negamax(-player, temp, mDepth - 1);
             legal_moves.push_back({score, col});
         }
     }
@@ -74,7 +88,7 @@ int nextMove(int player, Board board, int depth)
     return best.move;
 }
 
-int nextMovePython(int player, Board board, int depth)
+int Algorithm::nextMovePython(int player, Board board)
 {
     board_to_csv(board);
     string col = exec("python2 ./algorithm/minimax.py");
@@ -82,9 +96,7 @@ int nextMovePython(int player, Board board, int depth)
 }
 
 
-// TODO: check correctness, the evaluation is independent of the player
-// i.e. this value is always calculated from the point of view of player 1
-int evaluateBoard(int player, Board board)
+int Algorithm::evaluateBoard(int player, Board board)
 {
     int opp = 0;
     if (player == -1)
@@ -104,7 +116,7 @@ int evaluateBoard(int player, Board board)
         return fours * 100000 + threes * 100 + twos;
 }
 
-void board_to_csv(Board board)
+void Algorithm::board_to_csv(Board board)
 {
     ofstream file;
     file.open ("./algorithm/board.csv");
@@ -120,7 +132,7 @@ void board_to_csv(Board board)
     file.close();
 }
 
-string exec(const char* cmd)
+string Algorithm::exec(const char* cmd)
 {
     char buffer[128];
     std::string result = "";

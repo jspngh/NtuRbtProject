@@ -1,29 +1,44 @@
 #ifndef MINIMAX_H
 #define MINIMAX_H
 
+#include <string>
 
 #include "../board.hpp"
 
+#define DEBUG false
+#define INF 99999999
+#define FIRST_MOVE -1
 
-/**
- * Returns the best move (as a column number)
- *
- * Parameters:
- *      player:  0 -- Red
- *               1 -- Yellow
- */
-int nextMove(int player, Board board, int depth);
+#define MAX_DEPTH 8
+#define MIN_DEPTH 2
+#define DEFAULT_DEPTH 4
 
-int nextMovePython(int player, Board board, int depth);
+class Algorithm
+{
+    public:
+        Algorithm(int depth=DEFAULT_DEPTH): mDepth(depth) {}
 
+        void setDepth(int depth);
+        void increaseDepth();
+        void decreaseDepth();
+        /**
+         * Returns the best move (as a column number)
+         *
+         * Parameters:
+         *      player:  0 -- Red
+         *               1 -- Yellow
+         */
+        int nextMove(int player, Board board);
 
-/**
- * Simple heuristic to evaluate board configurations
- * Heuristic is (num of 4-in-a-rows)*99999 + (num of 3-in-a-rows)*100 +
- * (num of 2-in-a-rows)*10 - (num of opponent 4-in-a-rows)*99999 - (num of opponent
- * 3-in-a-rows)*100 - (num of opponent 2-in-a-rows)*10
- */
-int evaluateBoard(int player, Board board);
+        int nextMovePython(int player, Board board);
 
+    private:
+        int mDepth;
+
+        int negamax(int player, Board board, int depth);
+        int evaluateBoard(int player, Board board);
+        std::string exec(const char* cmd);
+        void board_to_csv(Board board);
+};
 #endif
 

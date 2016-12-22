@@ -37,7 +37,7 @@ def phrase_callback(model, audio):
             print "score:           ", score
             print "your sentence:   ", phrase
             print "best command:    ", sentences['command'][index_best_match]
-            # send_action(sentences['command_id'][index_best_match])
+            send_action(sentences['command_id'][index_best_match])
         else:
             print "score too low..."
     except:
