@@ -16,6 +16,13 @@
 
 #define REGION_THRESHOLD 300
 
+enum VisionResult
+{
+    PROC_ERR,
+    NO_MOVE,
+    SUCCESS
+};
+
 struct Stone
 {
     int x;
@@ -68,7 +75,7 @@ class VisionManager{
         bool initVision();
         void stopVision();
 
-        bool updateBoard(Board& board);
+        VisionResult updateBoard(Board& board);
 
         bool getVideo(cv::Mat& output);
         void processFrame(cv::Mat frame, State** output);

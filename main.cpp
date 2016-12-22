@@ -18,24 +18,114 @@ void getUserMove(Board& b, VisionManager& vm)
     // col = col - 1;
     // b.doMove(col, player_user);
 
-    cout << "it's your turn!" << endl;
-    cv::waitKey(20000);
+    cout << "Player, it's your turn now!" << endl;
 
-    bool success = false;
-    for (int i=0; i<4 && !success; i++)
+    bool stop = false;
+    VisionResult r;
+    int attempts = 3;
+    while(!stop && attempts > 0)
     {
-        success = vm.updateBoard(b);
+        r = vm.updateBoard(b);
+        switch (r)
+        {
+            case NO_MOVE:
+                cout << "no move done" << endl;
+                sleep(5);
+                break;
+            case PROC_ERR:
+                cout << "vision processing error" << endl;
+                attempts--;
+                break;
+            case SUCCESS:
+                stop = true;
+                break;
+        }
     }
 
-    if (!success)
+    if (r == PROC_ERR)
     {
         //TODO: do some interaction with the user
         cout << "ERR: could not get a correct user move, exiting..." << endl;
         exit(-1);
     }
 
-    cout << "player made his move" << endl;
+    cout << "player made his/her move" << endl;
     cout << b << endl;
+}
+
+void waitRobotMove(Board& b, VisionManager& vm, int expected_col)
+{
+    cout << "Robot is making it's move" << endl;
+
+    State expected_board[BOARD_HEIGHT][BOARD_WIDTH];
+    for (int i=BOARD_HEIGHT-1; i>-1; i--)
+    {
+        for (int j=0; j<BOARD_WIDTH; j++)
+        {
+            if (j == expected_col && b.getState(i,j) == Empty)
+            {
+                // TODO: do this better and modular
+                expected_board[i][j] = Red;
+                expected_col = -1;
+            }
+            else
+            {
+                expected_board[i][j] = b.getState(i,j);
+            }
+        }
+    }
+    for (int i=0; i<BOARD_HEIGHT; i++)
+    {
+        for (int j=0; j<BOARD_WIDTH; j++)
+        {
+            cout << expected_board[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+    bool stop = false;
+    VisionResult r;
+    int attempts = 3;
+    while(!stop && attempts > 0)
+    {
+        r = vm.updateBoard(b);
+        switch (r)
+        {
+            case NO_MOVE:
+                cout << "no move done" << endl;
+                sleep(5);
+                break;
+            case PROC_ERR:
+                cout << "vision processing error" << endl;
+                attempts--;
+                break;
+            case SUCCESS:
+                stop = true;
+                break;
+        }
+    }
+
+    if (r == PROC_ERR)
+    {
+        //TODO: do some interaction with the user
+        cout << "ERR: could not get the correct robot move, exiting..." << endl;
+        exit(-1);
+    }
+
+    for (int i=0; i<BOARD_HEIGHT; i++)
+    {
+        for (int j=0; j<BOARD_WIDTH; j++)
+        {
+            if (expected_board[i][j] != b.getState(i,j))
+            {
+                cout << "ERR: wrong move detected" << endl;
+                cout << b << endl;
+                exit(-1);
+            }
+        }
+    }
+
+    cout << "robot made its move" << endl;
 }
 
 void time_AI(int N)
@@ -68,11 +158,6 @@ int main (int argc, char* args[])
     S2Tcomm c;
     AI ai(robot, c);
 
-    while (true)
-    {
-        usleep(1000000);
-    }
-
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
     VisionManager vm(&device);
@@ -102,10 +187,12 @@ int main (int argc, char* args[])
         }
 
         // AI's move
-        col = nextMovePython(player_ai, b, depth);
+        col = nextMove(player_ai, b, depth);
         cout << "next move: " << col << endl;
-        b.doMove(col, player_ai);
         ai.doMove(col);
+        waitRobotMove(b, vm, col);
+
+        // b.doMove(col, player_ai);
 
         // check if AI won
         if (b.getWinner() != -1)

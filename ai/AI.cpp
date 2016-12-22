@@ -13,6 +13,8 @@
 
 #include "AI.h"
 
+#define MOCK_VOICE
+
 using namespace std;
 
 AI::AI(Robot* robot, S2Tcomm c) :
@@ -26,6 +28,10 @@ AI::AI(Robot* robot, S2Tcomm c) :
 
 void AI::processVoice()
 {
+#ifdef MOCK_VOICE
+    return;
+#endif
+
     if (!initS2Tcommunication())
     {
         cout << "stopping voice thread..." << endl;
@@ -64,8 +70,8 @@ void AI::userMove(Board& b)
 
 void AI::doMove(int col)
 {
-    mRobot->pickUpPiece();
-    mRobot->dropPiece(col);
+    // mRobot->pickUpPiece();
+    // mRobot->dropPiece(col);
 }
 
 bool AI::isWinning()
