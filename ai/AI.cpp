@@ -26,30 +26,45 @@ AI::AI(Robot* robot, S2Tcomm c) :
 
 void AI::processVoice()
 {
+    char buffer[256];
+    socklen_t cl_len;
+    struct sockaddr_in svr_addr, cl_addr;
+
     if (!initS2Tcommunication())
     {
         cout << "stopping voice thread..." << endl;
         return;
     }
 
-    char buffer[256];
-
     while (mProcVoice)
     {
+        listen(mComm.serverfd,5);
+        cl_len = sizeof(cl_addr);
+        mComm.sockfd = accept(mComm.serverfd,
+                (struct sockaddr *) &cl_addr,
+                &cl_len);
+        if (mComm.sockfd< 0)
+        {
+            cout << "ERROR on accept" << endl;
+            break;
+        }
+
+        mComm.sockfd = mComm.sockfd;
         bzero(buffer,256);
         int n = read(mComm.sockfd, buffer, 255);
         if (n < 0)
         {
             cout << "ERROR reading from socket" << endl;
+            close(mComm.sockfd);
             break;
         }
 
         printf("I have received: %d\n", atoi(buffer));
+        close(mComm.sockfd);
     }
 
-
     cout << "stopping voice thread..." << endl;
-    close(mComm.sockfd);
+    close(mComm.serverfd);
 }
 
 void AI::processVisual()
@@ -115,21 +130,7 @@ bool AI::initS2Tcommunication()
         cout << "ERROR on binding" << endl;
         return false;
     }
-
-    listen(svr_sockfd,5);
-    cl_len = sizeof(cl_addr);
-    cl_sockfd = accept(svr_sockfd,
-            (struct sockaddr *) &cl_addr,
-            &cl_len);
-    if (cl_sockfd < 0)
-    {
-        cout << "ERROR on accept" << endl;
-        return false;
-    }
-
-    close(svr_sockfd);
-
-    mComm.sockfd = cl_sockfd;
+    mComm.serverfd = svr_sockfd;
     return true;
 }
 

@@ -2,14 +2,14 @@ import speech_recognition as sr
 from difflib import SequenceMatcher
 import time
 import pandas as pd
+import socket
 
 def send_action(command):
     HOST = 'localhost'
     PORT = 50007
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
-    s.sendall(command)
-    data = s.recv(1024)
+    s.sendall(str(command))
     s.close()
 
 def heartbeat():
@@ -37,9 +37,11 @@ def phrase_callback(model, audio):
             print "score:           ", score
             print "your sentence:   ", phrase
             print "best command:    ", sentences['command'][index_best_match]
+            send_action(sentences['command_id'][index_best_match])
         else:
             print "score too low..."
     except:
+        print "bu dong"
         pass
 
 def main():

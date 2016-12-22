@@ -11,6 +11,7 @@ struct S2Tcomm
     int port = 50007;
 
     int sockfd = -1;
+    int serverfd = -1;
 };
 
 class AI
