@@ -42,6 +42,9 @@ class Robot
         int ptpSpeed;
 
         // constants
+        const int slowLineSpeed = 30;
+        const int slowPtpSpeed = 2;
+
         const float board_x0 = 99;
         const float board_dx = -33;
         const float board_z_drop = -48;
@@ -49,8 +52,8 @@ class Robot
         const float board_y = 450;
 
         const float piece_x = 150;
-        const float piece_z_grab = -100;
-        const float piece_z_hover = 0;
+        const float piece_z_grab = 0;
+        const float piece_z_hover = 50;
         const float piece_y = 450;
 };
 

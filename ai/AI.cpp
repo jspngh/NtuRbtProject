@@ -70,8 +70,12 @@ void AI::userMove(Board& b)
 
 void AI::doMove(int col)
 {
-    // mRobot->pickUpPiece();
-    // mRobot->dropPiece(col);
+    cout << "doing ma move" << endl;
+    mRobot->resetJoints();
+    cout << "joints reset" << endl;
+    mRobot->pickUpPiece();
+    mRobot->dropPiece(col);
+    mRobot->resetJoints();
 }
 
 bool AI::isWinning()
