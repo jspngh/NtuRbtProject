@@ -26,7 +26,7 @@ Server* Robot::getServer()
     return server;
 }
 
-void Robot::dropPiece(int col)
+void Robot::dropPiece(int col, bool drop)
 {
     float x = board_x0 + col * board_dx;
     float y = board_y;
@@ -44,7 +44,8 @@ void Robot::dropPiece(int col)
     // drop
     RobotCoord position_drop = {x, y, board_z_drop};
     move(position_drop);
-    openGripper();
+    if (drop)
+        openGripper();
     // reset speed
     setSpeed(cLineSpeed, cPtpSpeed);
 
@@ -113,13 +114,15 @@ void Robot::calibBoard(vector<int> cols)
 {
     setSpeed(lineSpeed, ptpSpeed);
 
+    resetJoints();
+    openGripper();
+    sleep(3000);
+    closeGripper();
+
     auto it = cols.begin();
     while (it != cols.end())
     {
-        resetJoints();
-        sleep(3000);
-        closeGripper();
-        dropPiece(*it);
+        dropPiece(*it, false);
         it++;
     }
     resetJoints();

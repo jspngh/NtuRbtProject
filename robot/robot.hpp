@@ -22,7 +22,7 @@ class Robot
 
         Server* getServer();
 
-        void dropPiece(int col);
+        void dropPiece(int col, bool drop=true);
         void pickUpPiece();
 
         void setSpeed(int linespeed, int ptpspeed);
