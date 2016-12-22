@@ -13,7 +13,7 @@
 
 #include "AI.h"
 
-#define MOCK_VOICE
+//#define MOCK_VOICE
 
 using namespace std;
 
@@ -65,12 +65,56 @@ void AI::processVoice()
             break;
         }
 
-        printf("I have received: %d\n", atoi(buffer));
+        VoiceCommand received_cmd = static_cast<VoiceCommand>(atoi(buffer));
+        printf("I have received: %d\n", received_cmd);
         close(mComm.sockfd);
+
+        processCmd(received_cmd);
     }
 
     cout << "stopping voice thread..." << endl;
     close(mComm.serverfd);
+}
+
+void AI::processCmd(VoiceCommand cmd)
+{
+    // TODO see below
+    printf("Processing command: %d\n", cmd);
+
+    switch (cmd)
+    {
+        case HELLO:
+            // go to soundboard and response
+            // in the sound board select random reply in correct category
+            // visualize response
+            break;
+        case HOW_ARE_YOU:
+            // go to soundboard and response
+            // in the sound board select random reply in correct category
+            // visualize response
+            break;
+        case COMPLIMENT:
+            // go to soundboard and response
+            // in the sound board select random reply in correct category
+            // visualize response
+            break;
+        case INSULT:
+            // go to soundboard and response
+            // in the sound board select random reply in correct category
+            // visualize response
+            break;
+        case TOO_EASY:
+            // go to soundboard and response
+            // in the sound board select random reply in correct category
+            // visualize response
+            break;
+        case TOO_HARD:
+            // go to soundboard and response
+            // in the sound board select random reply in correct category
+            // visualize response
+            break;
+    }
+
 }
 
 void AI::processVisual()

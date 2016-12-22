@@ -4,7 +4,7 @@ find_package( OpenCV REQUIRED )
 add_executable( connect4
   main.cpp
   board.cpp
-  minimax.cpp
+  algorithm/minimax.cpp
   vision/VisionManager.cpp vision/KinectManager.cpp
   ai/AI.cpp
   robot/robot.cpp

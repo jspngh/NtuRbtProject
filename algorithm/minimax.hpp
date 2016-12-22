@@ -2,7 +2,7 @@
 #define MINIMAX_H
 
 
-#include "board.hpp"
+#include "../board.hpp"
 
 
 /**

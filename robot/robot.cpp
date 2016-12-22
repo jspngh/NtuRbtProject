@@ -28,7 +28,8 @@ Server* Robot::getServer()
 
 void Robot::dropPiece(int col, bool drop)
 {
-    std::cout << "dropping piece" << endl;
+    // TODO make pretty
+    col = 6 - col;
     float x = board_x0 + col * board_dx;
     float y = board_y;
     float z = board_z_hover;
@@ -41,7 +42,7 @@ void Robot::dropPiece(int col, bool drop)
 
     // slow down movement
     int cLineSpeed = lineSpeed, cPtpSpeed = ptpSpeed;
-    setSpeed(slowLineSpeed, slowPtpSpeed);
+    setSpeed(30, 2);
     // drop
     RobotCoord position_drop = {x, y, board_z_drop};
     move(position_drop);
@@ -57,7 +58,6 @@ void Robot::dropPiece(int col, bool drop)
 
 void Robot::pickUpPiece()
 {
-    std::cout << "pickin up piece" << endl;
     float x = piece_x;
     float y = piece_y;
     float z = piece_z_hover;
@@ -70,11 +70,10 @@ void Robot::pickUpPiece()
 
     // slow down movement
     int cLineSpeed = lineSpeed, cPtpSpeed = ptpSpeed;
-    setSpeed(slowLineSpeed, slowLineSpeed);
+    setSpeed(30, 2);
     // grab
     RobotCoord position_grab = {x, y, piece_z_grab};
     move(position_grab);
-    sleep(3000);
     closeGripper();
     move(position_hover);
     // reset speed

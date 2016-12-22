@@ -42,6 +42,7 @@ public:
     // in different thread
     void processVoice();
     void processVisual();
+    void processCmd(VoiceCommand cmd);
 
     void userMove(Board& b);
     void doMove(int col);

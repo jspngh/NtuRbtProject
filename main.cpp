@@ -3,7 +3,7 @@
 #include <ctime>
 
 #include "board.hpp"
-#include "minimax.hpp"
+#include "algorithm/minimax.hpp"
 #include "vision/VisionManager.h"
 #include "robot/robot.hpp"
 #include "ai/AI.h"
@@ -142,7 +142,7 @@ void time_AI(int N)
 
         // time the duration of the AI calculations
         clock_t begin = clock();
-        int col = nextMove(player_ai, b, depth);
+        int col = nextMovePython(player_ai, b, depth);
         clock_t end = clock();
 
         double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;

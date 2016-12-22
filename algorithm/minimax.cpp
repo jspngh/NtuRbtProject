@@ -77,7 +77,7 @@ int nextMove(int player, Board board, int depth)
 int nextMovePython(int player, Board board, int depth)
 {
     board_to_csv(board);
-    string col = exec("python2 minimax.py");
+    string col = exec("python2 ./algorithm/minimax.py");
     return stoi(col);
 }
 
@@ -107,7 +107,7 @@ int evaluateBoard(int player, Board board)
 void board_to_csv(Board board)
 {
     ofstream file;
-    file.open ("board.csv");
+    file.open ("./algorithm/board.csv");
     for (int row = 0; row < BOARD_HEIGHT; row++)
     {
         for (int col = 0; col < BOARD_WIDTH - 1; col++)

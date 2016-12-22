@@ -31,13 +31,13 @@ def phrase_callback(model, audio):
     print "in callback"
     heartbeat()
     try:
-        phrase = model.recognize_google(audio)
+        phrase = model.recognize_sphinx(audio)
         index_best_match, score = find_best_match(phrase)
         if score > 0.6:
             print "score:           ", score
             print "your sentence:   ", phrase
             print "best command:    ", sentences['command'][index_best_match]
-            send_action(sentences['command_id'][index_best_match])
+            # send_action(sentences['command_id'][index_best_match])
         else:
             print "score too low..."
     except:
@@ -47,6 +47,7 @@ def phrase_callback(model, audio):
 def main():
     heartbeat()
     model = sr.Recognizer()
+    model.energy_threshold = 4000
     source = sr.Microphone()
     model.operation_timeout = 5
     model.listen_in_background(source, phrase_callback, phrase_time_limit = 4)
@@ -59,5 +60,6 @@ def main():
 
 # main
 sentences = pd.read_csv("./sentences.txt")
+print sentences
 # send_action("")
 main()

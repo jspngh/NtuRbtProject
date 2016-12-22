@@ -80,7 +80,7 @@ class Board
         State board[BOARD_HEIGHT][BOARD_WIDTH];
 
         // some constants for printing
-        const char* state2str[3] = { "O", "X", " "};
+        const char* state2str[3] = { "R", "Y", " "};
         const std::string colNumbers = " 1   2   3   4   5   6   7";
         const std::string delimeter = "--------------------------";
 };

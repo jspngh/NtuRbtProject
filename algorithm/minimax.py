@@ -250,7 +250,7 @@ class Minimax(object):
 def read_board():
     board = []
 
-    with open('board.csv', 'rb') as file:
+    with open('./algorithm/board.csv', 'rb') as file:
         reader = csv.reader(file, delimiter=',')
         for row in reader:
             board_row = []
@@ -282,5 +282,4 @@ def main():
     AI = Minimax(board)
     print AI.bestMove(4, board, 'o')[0]
 
-# main()
-time_AI(8)
+main()
