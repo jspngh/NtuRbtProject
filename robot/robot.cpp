@@ -12,8 +12,8 @@ using namespace std;
 Robot::Robot()
 {
     server = new Server();
-    lineSpeed = 50;
-    ptpSpeed = 5;
+    lineSpeed = 70;
+    ptpSpeed = 7;
 }
 
 Robot::~Robot()
@@ -107,6 +107,22 @@ void Robot::goHome()
     string command = "GOHOME";
     const char* movt = command.c_str();
     server->sendCommand(movt, sockfd());
+}
+
+void Robot::calibBoard(vector<int> cols)
+{
+    setSpeed(lineSpeed, ptpSpeed);
+
+    auto it = cols.begin();
+    while (it != cols.end())
+    {
+        resetJoints();
+        sleep(3000);
+        closeGripper();
+        dropPiece(*it);
+        it++;
+    }
+    resetJoints();
 }
 
 void Robot::move(RobotCoord c)

@@ -1,6 +1,8 @@
 #ifndef M_ROBOT
 #define M_ROBOT
 
+#include <vector>
+
 #include "server.hpp"
 
 // 140.112.91.192
@@ -26,6 +28,7 @@ class Robot
         void setSpeed(int linespeed, int ptpspeed);
         void resetJoints();
         void goHome();
+        void calibBoard(std::vector<int> cols);
 
     private:
         void move(RobotCoord c);
