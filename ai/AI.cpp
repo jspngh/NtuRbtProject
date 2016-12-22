@@ -13,6 +13,8 @@
 
 #include "AI.h"
 
+#define MOCK_VOICE
+
 using namespace std;
 
 AI::AI(Robot* robot, S2Tcomm c) :
@@ -29,6 +31,10 @@ void AI::processVoice()
     char buffer[256];
     socklen_t cl_len;
     struct sockaddr_in svr_addr, cl_addr;
+
+#ifdef MOCK_VOICE
+    return;
+#endif
 
     if (!initS2Tcommunication())
     {
@@ -79,8 +85,8 @@ void AI::userMove(Board& b)
 
 void AI::doMove(int col)
 {
-    mRobot->pickUpPiece();
-    mRobot->dropPiece(col);
+    // mRobot->pickUpPiece();
+    // mRobot->dropPiece(col);
 }
 
 bool AI::isWinning()

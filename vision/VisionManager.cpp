@@ -54,8 +54,6 @@ bool VisionManager::initVision()
     {
         init_success = getVideo(tmpMat);
         usleep(1000000);
-        // imshow("test", tmpMat);
-        // waitKey(0);
     }
 
     return init_success;
@@ -365,7 +363,7 @@ void VisionManager::processFrame(Mat frame, State** output)
     }
 }
 
-bool VisionManager::updateBoard(Board& board)
+VisionResult VisionManager::updateBoard(Board& board)
 {
     Mat rgbMat(Size(640,480),CV_8UC3,Scalar(0));
     getVideo(rgbMat);
@@ -383,8 +381,7 @@ bool VisionManager::updateBoard(Board& board)
             {
                 if (board.getState(i,j) != Empty)
                 {
-                    WARN("processing failed");
-                    return false;
+                    WARN("error during processing of board");
                 }
                 diff++;
                 xdiff = i;
@@ -393,10 +390,15 @@ bool VisionManager::updateBoard(Board& board)
         }
     }
 
-    if (diff != 1)
+    if (diff == 0)
     {
-        WARN("processing failed");
-        return false;
+        DEBUG("no move detected");
+        return NO_MOVE;
+    }
+    if (diff > 1)
+    {
+        DEBUG("too many changes detected");
+        return PROC_ERR;
     }
 
     board.setState(xdiff, ydiff, tmp[xdiff][ydiff]);
@@ -407,7 +409,7 @@ bool VisionManager::updateBoard(Board& board)
     }
     delete [] tmp;
 
-    return true;
+    return SUCCESS;
 }
 
 // int main(int argc, char **argv) {
