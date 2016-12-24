@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 
 #include "LTexture.h"
@@ -134,7 +135,7 @@ bool loadMedia()
     }
 
     //Load music
-    gMusic = Mix_LoadMUS( "/run/media/nemphis/c1dac181-6b79-4dd4-82a7-1b58224d2266/Music/Angel Dust/1999 - Bleed/01 – Bleed.mp3" );
+    gMusic = Mix_LoadMUS( "/home/luiz/Desktop/Luiz Felipe_Mint/National Taiwan University/Robotics/Final Project/NtuRbtProject/hci/soundboard/how_have_you_been.mp3" );
     if( gMusic == NULL )
     {
         printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
@@ -292,6 +293,8 @@ int main( int argc, char* args[] )
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
+
+                usleep(50000);
             }
         }
     }
