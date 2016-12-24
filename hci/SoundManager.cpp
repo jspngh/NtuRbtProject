@@ -4,11 +4,11 @@
 #include "LTexture.h"
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 500;
-const int SCREEN_HEIGHT = 222;
+const int SCREEN_WIDTH = 480;
+const int SCREEN_HEIGHT = 446;
 
 const int SOUNDBOARD_FILES = 14;
-const int ANIMATION_FRAMES = 40;
+const int ANIMATION_FRAMES = 46;
 
 //Starts up SDL and creates window
 bool init();
@@ -126,7 +126,7 @@ bool loadMedia()
     //Load animation textures
     for (int i = 0; i < ANIMATION_FRAMES; i++)
     {
-        std::string filepath =  "./animations/frame_" + std::to_string(i) + ".gif";
+        std::string filepath =  "./animations/Trump/GIF1/frame_" + std::to_string(i) + ".gif";
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
@@ -135,7 +135,7 @@ bool loadMedia()
     }
 
     //Load music
-    gMusic = Mix_LoadMUS( "/home/luiz/Desktop/Luiz Felipe_Mint/National Taiwan University/Robotics/Final Project/NtuRbtProject/hci/soundboard/how_have_you_been.mp3" );
+    gMusic = Mix_LoadMUS( "./soundboard/how_have_you_been.mp3" );
     if( gMusic == NULL )
     {
         printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
@@ -167,7 +167,7 @@ void close()
     }
 
     //Free the sound effects
-    for(int i = 0; i < ANIMATION_FRAMES; i++)
+    for(int i = 0; i < SOUNDBOARD_FILES; i++)
     {
         Mix_FreeChunk(gSoundboard[i]);
         gSoundboard[i] = NULL;
