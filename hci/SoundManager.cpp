@@ -8,15 +8,22 @@ const int SCREEN_WIDTH = 480;
 const int SCREEN_HEIGHT = 446;
 
 const int SOUNDBOARD_FILES = 14;
-const int ANIMATION_FRAMES = 164;
-const int ANIMATION_FRAMES1 = 46;
-const int ANIMATION_FRAMES2 = 27;
-const int ANIMATION_FRAMES3 = 46;
-const int ANIMATION_FRAMES4 = 61;
-const int ANIMATION_FRAMES5 = 46;
-const int ANIMATION_FRAMES6 = 46;
-const int ANIMATION_FRAMES7 = 46;
-const int ANIMATION_FRAMES8 = 30;
+const int ANIMATION_FRAMES_GIF1 = 46;
+const int ANIMATION_FRAMES_GIF2 = 28;
+const int ANIMATION_FRAMES_GIF3 = 43;
+const int ANIMATION_FRAMES_GIF4 = 62;
+const int ANIMATION_FRAMES_GIF5 = 22;
+const int ANIMATION_FRAMES_GIF6 = 32;
+const int ANIMATION_FRAMES_GIF7 = 31;
+const int ANIMATION_FRAMES_GIF8 = 31;
+const int ANIMATION_FRAMES = ANIMATION_FRAMES_GIF1 +
+                             ANIMATION_FRAMES_GIF2 +
+                             ANIMATION_FRAMES_GIF3 +
+                             ANIMATION_FRAMES_GIF4 +
+                             ANIMATION_FRAMES_GIF5 +
+                             ANIMATION_FRAMES_GIF6 +
+                             ANIMATION_FRAMES_GIF7 +
+                             ANIMATION_FRAMES_GIF8;
 
 
 //Starts up SDL and creates window
@@ -133,63 +140,95 @@ bool loadMedia()
 {
     //Loading success flag
     bool success = true;
-    int a=0;
 
     //Load animation textures
-    for (int i = 0; i < ANIMATION_FRAMES1; i++)
+    int i = 0;
+    for (int a = 0; a < ANIMATION_FRAMES_GIF1; a++)
     {
-        std::string filepath =  "./animations/Trump/GIF1/frame_" + std::to_string(a) + ".gif";
-        a++;
+        std::string filepath =  "./Trump/GIF1/frame_" + std::to_string(a) + ".gif";
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
-
+        i++;
     }
-    a=0;
 
-    for (int i = ANIMATION_FRAMES1; i < ANIMATION_FRAMES8+ANIMATION_FRAMES1; i++)
+    for (int a = 0; a < ANIMATION_FRAMES_GIF2; a++)
     {
-        std::string filepath =  "./animations/Trump/GIF8/frame_" + std::to_string(a) + ".gif";
-        a++;
+        std::string filepath =  "./Trump/GIF2/frame_" + std::to_string(a) + ".gif";
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
+        i++;
     }
-    a=0;
 
-     for (int i = ANIMATION_FRAMES8+ANIMATION_FRAMES1; i < ANIMATION_FRAMES4+ANIMATION_FRAMES8+ANIMATION_FRAMES1; i++)
+    for (int a = 0; a < ANIMATION_FRAMES_GIF3; a++)
     {
-        std::string filepath =  "./animations/Trump/GIF4/frame_" + std::to_string(a) + ".gif";
-        a++;
+        std::string filepath =  "./Trump/GIF3/frame_" + std::to_string(a) + ".gif";
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
+        i++;
     }
-    a=0;
 
-     for (int i = ANIMATION_FRAMES4+ANIMATION_FRAMES8+ANIMATION_FRAMES1; i < ANIMATION_FRAMES2+ANIMATION_FRAMES4+ANIMATION_FRAMES8+ANIMATION_FRAMES1; i++)
+    for (int a = 0; a < ANIMATION_FRAMES_GIF4; a++)
     {
-        std::string filepath =  "./animations/Trump/GIF2/frame_" + std::to_string(a) + ".gif";
-        a++;
+        std::string filepath =  "./Trump/GIF4/frame_" + std::to_string(a) + ".gif";
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
+        i++;
     }
 
-    //Load music
-    gMusic = Mix_LoadMUS( "./soundboard/how_have_you_been.mp3" );
-    if( gMusic == NULL )
+    for (int a = 0; a < ANIMATION_FRAMES_GIF5; a++)
     {
-        printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
-        success = false;
+        std::string filepath =  "./Trump/GIF5/frame_" + std::to_string(a) + ".gif";
+        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
+        {
+            printf( "Failed to load prompt texture!\n" );
+            success = false;
+        }
+        i++;
+    }
+
+    for (int a = 0; a < ANIMATION_FRAMES_GIF6; a++)
+    {
+        std::string filepath =  "./Trump/GIF6/frame_" + std::to_string(a) + ".gif";
+        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
+        {
+            printf( "Failed to load prompt texture!\n" );
+            success = false;
+        }
+        i++;
+    }
+
+    for (int a = 0; a < ANIMATION_FRAMES_GIF7; a++)
+    {
+        std::string filepath =  "./Trump/GIF7/frame_" + std::to_string(a) + ".gif";
+        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
+        {
+            printf( "Failed to load prompt texture!\n" );
+            success = false;
+        }
+        i++;
+    }
+
+    for (int a = 0; a < ANIMATION_FRAMES_GIF8; a++)
+    {
+        std::string filepath =  "./Trump/GIF8/frame_" + std::to_string(a) + ".gif";
+        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
+        {
+            printf( "Failed to load prompt texture!\n" );
+            success = false;
+        }
+        i++;
     }
 
     //Load sound effects
@@ -339,7 +378,7 @@ int main( int argc, char* args[] )
 
                 //Render prompt
                 gAnimation[frame].render( 0, 0 );
-                frame = ++frame % 164;
+                frame = ++frame % ANIMATION_FRAMES;
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
