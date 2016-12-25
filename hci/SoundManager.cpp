@@ -133,41 +133,50 @@ bool loadMedia()
 {
     //Loading success flag
     bool success = true;
+    int a=0;
 
     //Load animation textures
     for (int i = 0; i < ANIMATION_FRAMES1; i++)
     {
-        std::string filepath =  "./animations/Trump/GIF1/frame_" + std::to_string(i) + ".gif";
+        std::string filepath =  "./animations/Trump/GIF1/frame_" + std::to_string(a) + ".gif";
+        a++;
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
+
     }
+    a=0;
 
     for (int i = ANIMATION_FRAMES1; i < ANIMATION_FRAMES8+ANIMATION_FRAMES1; i++)
     {
-        std::string filepath =  "./animations/Trump/GIF8/frame_" + std::to_string(i-ANIMATION_FRAMES1) + ".gif";
+        std::string filepath =  "./animations/Trump/GIF8/frame_" + std::to_string(a) + ".gif";
+        a++;
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
     }
+    a=0;
 
      for (int i = ANIMATION_FRAMES8+ANIMATION_FRAMES1; i < ANIMATION_FRAMES4+ANIMATION_FRAMES8+ANIMATION_FRAMES1; i++)
     {
-        std::string filepath =  "./animations/Trump/GIF4/frame_" + std::to_string(i-ANIMATION_FRAMES1-ANIMATION_FRAMES8) + ".gif";
+        std::string filepath =  "./animations/Trump/GIF4/frame_" + std::to_string(a) + ".gif";
+        a++;
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
     }
+    a=0;
 
      for (int i = ANIMATION_FRAMES4+ANIMATION_FRAMES8+ANIMATION_FRAMES1; i < ANIMATION_FRAMES2+ANIMATION_FRAMES4+ANIMATION_FRAMES8+ANIMATION_FRAMES1; i++)
     {
-        std::string filepath =  "./animations/Trump/GIF2/frame_" + std::to_string(i-ANIMATION_FRAMES8-ANIMATION_FRAMES4-ANIMATION_FRAMES1) + ".gif";
+        std::string filepath =  "./animations/Trump/GIF2/frame_" + std::to_string(a) + ".gif";
+        a++;
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
@@ -330,7 +339,7 @@ int main( int argc, char* args[] )
 
                 //Render prompt
                 gAnimation[frame].render( 0, 0 );
-                frame = ++frame % 40;
+                frame = ++frame % 164;
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
