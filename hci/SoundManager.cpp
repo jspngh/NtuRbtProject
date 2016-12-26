@@ -1,29 +1,17 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <utility>
 
 #include "LTexture.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 480;
-const int SCREEN_HEIGHT = 446;
+using namespace std;
 
-const int SOUNDBOARD_FILES = 14;
-const int ANIMATION_FRAMES_GIF1 = 46;
-const int ANIMATION_FRAMES_GIF2 = 28;
-const int ANIMATION_FRAMES_GIF3 = 43;
-const int ANIMATION_FRAMES_GIF4 = 62;
-const int ANIMATION_FRAMES_GIF5 = 22;
-const int ANIMATION_FRAMES_GIF6 = 32;
-const int ANIMATION_FRAMES_GIF7 = 31;
-const int ANIMATION_FRAMES_GIF8 = 31;
-const int ANIMATION_FRAMES = ANIMATION_FRAMES_GIF1 +
-                             ANIMATION_FRAMES_GIF2 +
-                             ANIMATION_FRAMES_GIF3 +
-                             ANIMATION_FRAMES_GIF4 +
-                             ANIMATION_FRAMES_GIF5 +
-                             ANIMATION_FRAMES_GIF6 +
-                             ANIMATION_FRAMES_GIF7 +
-                             ANIMATION_FRAMES_GIF8;
+//Screen dimension constants
+const int SCREEN_WIDTH = 768;
+const int SCREEN_HEIGHT = 1280;
+
+const int NR_CATEGORIES = 14;
+const int ANIMATION_FRAMES = 45;
 
 
 //Starts up SDL and creates window
@@ -44,26 +32,21 @@ SDL_Renderer* gRenderer = NULL;
 //Animation textures
 LTexture gAnimation[ANIMATION_FRAMES];
 
-
-
-std::string gSoundboardNames[SOUNDBOARD_FILES] = {
-    "3_clap",
-    "because_im_a_potato",
-    "doing_great",
-    "fail_5_more_times",
-    "good_job",
-    "goodbye",
-    "hello",
-    "hello_and_welcome",
-    "hey_moron",
-    "how_have_you_been",
-    "its_you",
-    "so_lonely",
-    "still_here",
-    "your_fault"
+pair<string,int> gSoundboardCategories[NR_CATEGORIES] = {
+    {"hello",4},
+    {"compliment",2},
+    {"compliment_response",0},
+    {"insult",0},
+    {"insult_response",0},
+    {"winning",4},
+    {"won",3},
+    {"losing",3},
+    {"lost",3},
+    {"too_easy",3},
+    {"too_hard",4},
 };
 
-Mix_Chunk *gSoundboard[SOUNDBOARD_FILES] = { NULL };
+Mix_Chunk** gSoundboard[NR_CATEGORIES] = { NULL };
 
 //The music that will be played
 Mix_Music *gMusic = NULL;
@@ -124,7 +107,7 @@ bool init()
                     success = false;
                 }
 
-                if( Mix_Volume( -1, 10 ) < 0 )
+                if( Mix_Volume( -1, 20 ) < 0 )
                 {
                     printf( "SDL_mixer volume could not be set! SDL_mixer Error: %s\n", Mix_GetError() );
                     success = false;
@@ -142,105 +125,30 @@ bool loadMedia()
     bool success = true;
 
     //Load animation textures
-    int i = 0;
-    for (int a = 0; a < ANIMATION_FRAMES_GIF1; a++)
+    for (int i = 0; i < ANIMATION_FRAMES; i++)
     {
-        std::string filepath =  "./Trump/GIF1/frame_" + std::to_string(a) + ".gif";
+        std::string filepath =  "./animations/HAL/frame_" + std::to_string(i) + ".gif";
         if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
         {
             printf( "Failed to load prompt texture!\n" );
             success = false;
         }
-        i++;
-    }
-
-    for (int a = 0; a < ANIMATION_FRAMES_GIF2; a++)
-    {
-        std::string filepath =  "./Trump/GIF2/frame_" + std::to_string(a) + ".gif";
-        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
-        {
-            printf( "Failed to load prompt texture!\n" );
-            success = false;
-        }
-        i++;
-    }
-
-    for (int a = 0; a < ANIMATION_FRAMES_GIF3; a++)
-    {
-        std::string filepath =  "./Trump/GIF3/frame_" + std::to_string(a) + ".gif";
-        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
-        {
-            printf( "Failed to load prompt texture!\n" );
-            success = false;
-        }
-        i++;
-    }
-
-    for (int a = 0; a < ANIMATION_FRAMES_GIF4; a++)
-    {
-        std::string filepath =  "./Trump/GIF4/frame_" + std::to_string(a) + ".gif";
-        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
-        {
-            printf( "Failed to load prompt texture!\n" );
-            success = false;
-        }
-        i++;
-    }
-
-    for (int a = 0; a < ANIMATION_FRAMES_GIF5; a++)
-    {
-        std::string filepath =  "./Trump/GIF5/frame_" + std::to_string(a) + ".gif";
-        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
-        {
-            printf( "Failed to load prompt texture!\n" );
-            success = false;
-        }
-        i++;
-    }
-
-    for (int a = 0; a < ANIMATION_FRAMES_GIF6; a++)
-    {
-        std::string filepath =  "./Trump/GIF6/frame_" + std::to_string(a) + ".gif";
-        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
-        {
-            printf( "Failed to load prompt texture!\n" );
-            success = false;
-        }
-        i++;
-    }
-
-    for (int a = 0; a < ANIMATION_FRAMES_GIF7; a++)
-    {
-        std::string filepath =  "./Trump/GIF7/frame_" + std::to_string(a) + ".gif";
-        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
-        {
-            printf( "Failed to load prompt texture!\n" );
-            success = false;
-        }
-        i++;
-    }
-
-    for (int a = 0; a < ANIMATION_FRAMES_GIF8; a++)
-    {
-        std::string filepath =  "./Trump/GIF8/frame_" + std::to_string(a) + ".gif";
-        if( !gAnimation[i].loadFromFile( filepath.c_str() ) )
-        {
-            printf( "Failed to load prompt texture!\n" );
-            success = false;
-        }
-        i++;
     }
 
     //Load sound effects
-
-    for (int i = 0; i < SOUNDBOARD_FILES; i++)
+    for (int i = 0; i < NR_CATEGORIES; i++)
     {
-        std::string filepath =  "./soundboard/" + gSoundboardNames[i] + ".mp3";
-        gSoundboard[i] = Mix_LoadWAV(filepath.c_str());
-        if( gSoundboard[i] == NULL )
+        pair<string,int> category = gSoundboardCategories[i];
+        gSoundboard[i] = new Mix_Chunk*[category.second];
+        for (int j = 0; j < category.second; j++)
         {
-            printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
-            success = false;
+            std::string filepath =  "./soundboard/HAL/" + category.first + "/" + to_string(j+1) + ".mp3";
+            gSoundboard[i][j] = Mix_LoadWAV(filepath.c_str());
+            if( gSoundboard[i][j] == NULL )
+            {
+                printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+                success = false;
+            }
         }
     }
 
@@ -256,10 +164,15 @@ void close()
     }
 
     //Free the sound effects
-    for(int i = 0; i < SOUNDBOARD_FILES; i++)
+    for (int i = 0; i < NR_CATEGORIES; i++)
     {
-        Mix_FreeChunk(gSoundboard[i]);
-        gSoundboard[i] = NULL;
+        pair<string,int> category = gSoundboardCategories[i];
+        for (int j = 0; j < category.second; j++)
+        {
+            Mix_FreeChunk(gSoundboard[i][j]);
+            gSoundboard[i][j] = NULL;
+        }
+        delete[] gSoundboard[i];
     }
 
     //Free the music
@@ -321,22 +234,22 @@ int main( int argc, char* args[] )
                         {
                             //Play high sound effect
                             case SDLK_1:
-                                Mix_PlayChannel( -1, gSoundboard[0], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[0][1], 0 );
                                 break;
 
                                 //Play medium sound effect
                             case SDLK_2:
-                                Mix_PlayChannel( -1, gSoundboard[1], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[1][0], 0 );
                                 break;
 
                                 //Play low sound effect
                             case SDLK_3:
-                                Mix_PlayChannel( -1, gSoundboard[2], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[5][0], 0 );
                                 break;
 
                                 //Play scratch sound effect
                             case SDLK_4:
-                                Mix_PlayChannel( -1, gSoundboard[3], 0 );
+                                Mix_PlayChannel( -1, gSoundboard[8][1], 0 );
                                 break;
 
                             case SDLK_9:
@@ -379,11 +292,13 @@ int main( int argc, char* args[] )
                 //Render prompt
                 gAnimation[frame].render( 0, 0 );
                 frame = ++frame % ANIMATION_FRAMES;
+                // if (frame > 12 && frame < 35)
+                //     frame = 35;
 
                 //Update screen
                 SDL_RenderPresent( gRenderer );
 
-                usleep(50000);
+                usleep(100001);
             }
         }
     }
