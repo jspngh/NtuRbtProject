@@ -1,9 +1,14 @@
+#ifndef M_AI
+#define M_AI
+
 #include <thread>
 #include <netinet/in.h>
 #include <string>
 
+#include "Message.h"
 #include "../board.hpp"
 #include "../robot/robot.hpp"
+#include "../hci/HCI.h"
 #include "../algorithm/minimax.hpp"
 
 struct S2Tcomm
@@ -18,27 +23,8 @@ struct S2Tcomm
 class AI
 {
 public:
-    enum BehaviourState
-    {
-        LOSING          = 0b00000001,
-        WINNING         = 0b00000010,
-        BUSY_MOVE       = 0b00000100,
-        WAITING_VISION  = 0b00001000,
-        WAITING_USER    = 0b00010000,
-        BOARD_PROC_ERR  = 0b00100000,
-    };
 
-    enum VoiceCommand
-    {
-        HELLO = 0,
-        HOW_ARE_YOU = 1,
-        COMPLIMENT = 2,
-        INSULT = 3,
-        TOO_EASY = 4,
-        TOO_HARD = 5,
-    };
-
-    AI(Robot* robot, S2Tcomm c, Algorithm& algorithm, Board& board);
+    AI(Robot* robot, HCI* hci, S2Tcomm c, Algorithm& algorithm, Board& board);
 
     // in different thread
     void processVoice();
@@ -54,6 +40,7 @@ public:
     bool procErr();
 private:
     Robot* mRobot;
+    HCI* mHCI;
     Board mBoard;
     Algorithm mAlgorithm;
 
@@ -65,3 +52,5 @@ private:
     bool initS2Tcommunication();
     bool isState(BehaviourState s);
 };
+
+#endif

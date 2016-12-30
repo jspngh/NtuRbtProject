@@ -12,8 +12,8 @@ using namespace std;
 Robot::Robot()
 {
     server = new Server();
-    lineSpeed = 70;
-    ptpSpeed = 7;
+    lineSpeed = 50;
+    ptpSpeed = 5;
 }
 
 Robot::~Robot()
@@ -128,6 +128,7 @@ void Robot::calibBoard(vector<int> cols)
         it++;
     }
     resetJoints();
+    openGripper();
 }
 
 void Robot::move(RobotCoord c)

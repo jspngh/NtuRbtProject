@@ -54,9 +54,9 @@ class Robot
         const float board_z_hover = 0;
         const float board_y = 450;
 
-        const float piece_x = 150;
-        const float piece_z_grab = 0;
-        const float piece_z_hover = 50;
+        const float piece_x = 230;
+        const float piece_z_grab = -230;
+        const float piece_z_hover = 0;
         const float piece_y = 450;
 };
 

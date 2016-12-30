@@ -6,10 +6,11 @@ add_executable( connect4
   board.cpp
   algorithm/minimax.cpp
   vision/VisionManager.cpp vision/KinectManager.cpp
+  hci/HCI.cpp hci/LTexture.cpp
   ai/AI.cpp
   robot/robot.cpp
   robot/server.cpp)
 set_property(TARGET connect4 PROPERTY CXX_STANDARD 11)
 include_directories( /usr/include/libusb-1.0)
-target_link_libraries( connect4 ${OpenCV_LIBS} freenect pthread)
+target_link_libraries( connect4 ${OpenCV_LIBS} freenect pthread SDL2 SDL2_image SDL2_mixer)
 set ( CMAKE_CXX_FLAGS "-Wall -Wextra" )

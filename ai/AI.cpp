@@ -13,13 +13,14 @@
 
 #include "AI.h"
 
-//#define MOCK_VOICE
+#define MOCK_VOICE
 
 using namespace std;
 
-AI::AI(Robot* robot, S2Tcomm c, Algorithm& algo, Board& board):
+AI::AI(Robot* robot, HCI* hci, S2Tcomm c, Algorithm& algo, Board& board):
     mVoiceThread(&AI::processVoice, this),
     mRobot(robot),
+    mHCI(hci),
     mComm(c),
     mAlgorithm(algo),
     mBoard(board)
@@ -35,6 +36,11 @@ void AI::processVoice()
     struct sockaddr_in svr_addr, cl_addr;
 
 #ifdef MOCK_VOICE
+    while (true)
+    {
+        usleep(10000000);
+        processCmd(HOW_ARE_YOU);
+    }
     return;
 #endif
 
@@ -85,36 +91,12 @@ void AI::processCmd(VoiceCommand cmd)
 
     switch (cmd)
     {
-        case HELLO:
-            cout << "HELLO" << endl;
-            // go to soundboard and response
-            // in the sound board select random reply in correct category
-            // visualize response
-            break;
-        case HOW_ARE_YOU:
-            cout << "HOW ARE YOU" << endl;
-            // go to soundboard and response
-            // in the sound board select random reply in correct category
-            // visualize response
-            break;
-        case COMPLIMENT:
-            cout << "COMPLEMENT" << endl;
-            // go to soundboard and response
-            // in the sound board select random reply in correct category
-            // visualize response
-            break;
-        case INSULT:
-            cout << "INSULT" << endl;
-            // go to soundboard and response
-            // in the sound board select random reply in correct category
-            // visualize response
-            break;
         case TOO_EASY:
             cout << "TOO EASY" << endl;
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
-
+            mHCI->msg({0, cmd});
             // adjust level
             mAlgorithm.increaseDepth();
             break;
@@ -123,10 +105,17 @@ void AI::processCmd(VoiceCommand cmd)
             // go to soundboard and response
             // in the sound board select random reply in correct category
             // visualize response
-
+            mHCI->msg({0, cmd});
             // adjust level
             mAlgorithm.decreaseDepth();
             break;
+        default:
+            // go to soundboard and response
+            // in the sound board select random reply in correct category
+            // visualize response
+            Message tmp = {0, cmd};
+            printf("Sending command\n");
+            mHCI->msg(tmp);
     }
 
 }

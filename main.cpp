@@ -6,9 +6,78 @@
 #include "algorithm/minimax.hpp"
 #include "vision/VisionManager.h"
 #include "robot/robot.hpp"
+#include "hci/HCI.h"
 #include "ai/AI.h"
 
 using namespace std;
+
+Robot* robot;
+HCI* hci;
+
+void getUserMove(Board& b, VisionManager& vm);
+void waitRobotMove(Board& b, VisionManager& vm, int expected_col);
+
+int main (int argc, char* args[])
+{
+    Board b;
+    hci = new HCI();
+    robot = new Robot();
+    S2Tcomm c;
+    Algorithm algorithm;
+    AI ai(robot, hci, c, algorithm, b);
+
+    // robot = new Robot();
+    Freenect::Freenect freenect;
+    KinectManager& device = freenect.createDevice<KinectManager>(0);
+    VisionManager vm(&device);
+    if (!vm.initVision())
+    {
+        cout << "ERR: could not initialize Kinect, exiting..." << endl;
+        exit(-1);
+    }
+
+
+    int player_user = 0;
+    int player_ai = 1;
+    int col;
+    int depth = 6;
+
+    int winner = -1;
+
+    while (winner == -1)
+    {
+        getUserMove(b, vm);
+
+        // check if user won
+        if (b.getWinner() != -1)
+        {
+            winner = player_user;
+            break;
+        }
+
+        // AI's move
+        col = ai.doMove();
+        waitRobotMove(b, vm, col);
+
+        // b.doMove(col, player_ai);
+
+        // check if AI won
+        if (b.getWinner() != -1)
+        {
+            winner = player_ai;
+            break;
+        }
+
+        // print board
+        cout << b << endl;
+    }
+
+    cout << b << endl;
+
+    cout << "game is finished" << endl;
+    cout << "winner: " << winner << endl;
+    vm.stopVision();
+}
 
 void getUserMove(Board& b, VisionManager& vm)
 {
@@ -120,65 +189,4 @@ void waitRobotMove(Board& b, VisionManager& vm, int expected_col)
     }
 
     cout << "robot made its move" << endl;
-}
-
-
-int main (int argc, char* args[])
-{
-    Board b;
-    Robot* robot = new Robot();
-    S2Tcomm c;
-    Algorithm algorithm;
-    AI ai(robot, c, algorithm, b);
-
-    Freenect::Freenect freenect;
-    KinectManager& device = freenect.createDevice<KinectManager>(0);
-    VisionManager vm(&device);
-    if (!vm.initVision())
-    {
-        cout << "ERR: could not initialize Kinect, exiting..." << endl;
-        exit(-1);
-    }
-
-
-    int player_user = 0;
-    int player_ai = 1;
-    int col;
-    int depth = 6;
-
-    int winner = -1;
-
-    while (winner == -1)
-    {
-        getUserMove(b, vm);
-
-        // check if user won
-        if (b.getWinner() != -1)
-        {
-            winner = player_user;
-            break;
-        }
-
-        // AI's move
-        col = ai.doMove();
-        waitRobotMove(b, vm, col);
-
-        // b.doMove(col, player_ai);
-
-        // check if AI won
-        if (b.getWinner() != -1)
-        {
-            winner = player_ai;
-            break;
-        }
-
-        // print board
-        cout << b << endl;
-    }
-
-    cout << b << endl;
-
-    cout << "game is finished" << endl;
-    cout << "winner: " << winner << endl;
-    vm.stopVision();
 }
