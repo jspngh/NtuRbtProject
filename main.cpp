@@ -21,12 +21,16 @@ int main (int argc, char* args[])
 {
     Board b;
     hci = new HCI();
-    robot = new Robot();
+    // robot = new Robot();
     S2Tcomm c;
     Algorithm algorithm;
     AI ai(robot, hci, c, algorithm, b);
 
-    // robot = new Robot();
+    while(true)
+    {
+        usleep(10000000);
+    }
+
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
     VisionManager vm(&device);
@@ -98,6 +102,7 @@ void getUserMove(Board& b, VisionManager& vm)
             case PROC_ERR:
                 cout << "vision processing error" << endl;
                 attempts--;
+                sleep(1);
                 break;
             case SUCCESS:
                 stop = true;
@@ -161,6 +166,7 @@ void waitRobotMove(Board& b, VisionManager& vm, int expected_col)
             case PROC_ERR:
                 cout << "vision processing error" << endl;
                 attempts--;
+                sleep(1);
                 break;
             case SUCCESS:
                 stop = true;

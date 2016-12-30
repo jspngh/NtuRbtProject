@@ -10,6 +10,7 @@
 #define SHOW_WARN
 
 #define USE_KINECT
+// #define BUILD_SEPERATE
 
 using namespace cv;
 using namespace std;
@@ -176,11 +177,18 @@ list<Stone> VisionManager::findStones(Mat raw)
     Mat processedFrame = Mat::zeros(raw.size(), CV_8UC3);
 
     // find yellow
-    inRange(raw, Scalar(20, 76, 102), Scalar(35, 204, 255), frameYellow);
+    inRange(raw, Scalar(20, 76, 102), Scalar(35, 255, 255), frameYellow);
     // find red
-    inRange(raw, Scalar(0, 102, 66), Scalar(10, 240, 204), redMaskL);
-    inRange(raw, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
+    inRange(raw, Scalar(0, 102, 66), Scalar(10, 255, 204), redMaskL);
+    inRange(raw, Scalar(165, 102, 66), Scalar(180, 255, 204), redMaskH);
     frameRed = redMaskL | redMaskH;
+
+    // // find yellow
+    // inRange(raw, Scalar(20, 76, 102), Scalar(35, 204, 255), frameYellow);
+    // // find red
+    // inRange(raw, Scalar(0, 102, 66), Scalar(10, 240, 204), redMaskL);
+    // inRange(raw, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
+    // frameRed = redMaskL | redMaskH;
 
     imshow("redframe", frameRed | frameYellow);
 
@@ -226,7 +234,8 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     result.second.x = -1;
     Mat frameBlue = Mat::zeros(raw.size(), CV_8UC1);
     // find blue
-    inRange(raw, Scalar(95, 63, 76), Scalar(110, 230, 230), frameBlue);
+    inRange(raw, Scalar(95, 63, 50), Scalar(120, 255, 230), frameBlue);
+    // inRange(raw, Scalar(95, 63, 76), Scalar(110, 230, 230), frameBlue);
 
     // find the vertical edges of the board
     list<BoardEdge> edgeList;
@@ -365,6 +374,7 @@ void VisionManager::processFrame(Mat frame, State** output)
 
 VisionResult VisionManager::updateBoard(Board& board)
 {
+#ifndef BUILD_SEPERATE
     Mat rgbMat(Size(640,480),CV_8UC3,Scalar(0));
     getVideo(rgbMat);
     State** tmp = board.getBoardCopy();
@@ -410,114 +420,119 @@ VisionResult VisionManager::updateBoard(Board& board)
     delete [] tmp;
 
     return SUCCESS;
+#else
+    return NO_MOVE;
+#endif
 }
 
-// int main(int argc, char **argv) {
-//     bool die(false);
+#ifdef BUILD_SEPERATE
+int main(int argc, char **argv) {
+    bool die(false);
 
-//     Mat rgbMat(Size(640,480),CV_8UC3,Scalar(0));
-//     Mat ownMat(Size(640,480),CV_8UC3,Scalar(0));
+    Mat rgbMat(Size(640,480),CV_8UC3,Scalar(0));
+    Mat ownMat(Size(640,480),CV_8UC3,Scalar(0));
 
-//     Freenect::Freenect freenect;
-//     DEBUG("creating device");
-//     KinectManager& device = freenect.createDevice<KinectManager>(0);
-//     VisionManager vm(&device);
-//     // VisionManager vm;
+    Freenect::Freenect freenect;
+    DEBUG("creating device");
+    KinectManager& device = freenect.createDevice<KinectManager>(0);
+    VisionManager vm(&device);
+    // VisionManager vm;
 
-//     namedWindow("rgb",CV_WINDOW_AUTOSIZE);
-// #ifdef USE_KINECT
-//     DEBUG("starting video");
-//     device.startVideo();
-//     while (!die) {
-//         device.getVideo(rgbMat);
-//         cv::imshow("rgb", rgbMat);
+    namedWindow("rgb",CV_WINDOW_AUTOSIZE);
+#ifdef USE_KINECT
+    DEBUG("starting video");
+    device.startVideo();
+    while (!die) {
+        device.getVideo(rgbMat);
+        cv::imshow("rgb", rgbMat);
 
-//         State** board = new State*[BOARD_HEIGHT];
-//         for (int row = 0; row < BOARD_HEIGHT; row++)
-//         {
-//             board[row] = new State[BOARD_WIDTH];
-//             for (int col = 0; col < BOARD_WIDTH; col++)
-//             {
-//                 board[row][col] = State::Empty;
-//             }
-//         }
-//         vm.processFrame(rgbMat, board);
+        State** board = new State*[BOARD_HEIGHT];
+        for (int row = 0; row < BOARD_HEIGHT; row++)
+        {
+            board[row] = new State[BOARD_WIDTH];
+            for (int col = 0; col < BOARD_WIDTH; col++)
+            {
+                board[row][col] = State::Empty;
+            }
+        }
+        vm.processFrame(rgbMat, board);
 
-//         for(int row=0; row < BOARD_HEIGHT; row++)
-//         {
-//             cout << " |";
-//             for(int col = 0; col < BOARD_WIDTH; col++)
-//             {
-//                 char c;
-//                 switch(board[row][col])
-//                 {
-//                     case Yellow:
-//                         c = 'Y';
-//                         break;
-//                     case Red:
-//                         c = 'R';
-//                         break;
-//                     case Empty:
-//                         c= '-';
-//                         break;
-//                 }
-//                 cout << " " << c << " |";
-//             }
+        for(int row=0; row < BOARD_HEIGHT; row++)
+        {
+            cout << " |";
+            for(int col = 0; col < BOARD_WIDTH; col++)
+            {
+                char c;
+                switch(board[row][col])
+                {
+                    case Yellow:
+                        c = 'Y';
+                        break;
+                    case Red:
+                        c = 'R';
+                        break;
+                    case Empty:
+                        c= '-';
+                        break;
+                }
+                cout << " " << c << " |";
+            }
 
-//             cout << endl;
-//         }
-//         char k = cvWaitKey(0);
-//         if( k == 27 ){
-//             cvDestroyWindow("rgb");
-//             break;
-//         }
-//     }
-//     device.stopVideo();
-// #else
-//     int cnt = 1;
-//     while (cnt < 8) {
-//         Mat img = imread("images/im" + to_string(cnt) + ".jpg");
-//         imshow("rgb", img);
+            cout << endl;
+        }
+        char k = cvWaitKey(0);
+        if( k == 27 ){
+            cvDestroyWindow("rgb");
+            break;
+        }
+    }
+    device.stopVideo();
+#else
+    int cnt = 1;
+    while (cnt < 8) {
+        Mat img = imread("images/im" + to_string(cnt) + ".jpg");
+        imshow("rgb", img);
 
-//         State** board = new State*[BOARD_HEIGHT];
-//         for (int row = 0; row < BOARD_HEIGHT; row++)
-//         {
-//             board[row] = new State[BOARD_WIDTH];
-//             for (int col = 0; col < BOARD_WIDTH; col++)
-//             {
-//                 board[row][col] = State::Empty;
-//             }
-//         }
-//         vm.processFrame(img, board);
+        State** board = new State*[BOARD_HEIGHT];
+        for (int row = 0; row < BOARD_HEIGHT; row++)
+        {
+            board[row] = new State[BOARD_WIDTH];
+            for (int col = 0; col < BOARD_WIDTH; col++)
+            {
+                board[row][col] = State::Empty;
+            }
+        }
+        vm.processFrame(img, board);
 
-//         for(int row = BOARD_HEIGHT - 1; row >= 0 ; row--)
-//         {
-//             cout << " |";
-//             for(int col = 0; col < BOARD_WIDTH; col++)
-//             {
-//                 char c;
-//                 switch(board[row][col])
-//                 {
-//                     case Yellow:
-//                         c = 'Y';
-//                         break;
-//                     case Red:
-//                         c = 'R';
-//                         break;
-//                     case Empty:
-//                         c= '-';
-//                         break;
-//                 }
-//                 cout << " " << c << " |";
-//             }
+        for(int row = BOARD_HEIGHT - 1; row >= 0 ; row--)
+        {
+            cout << " |";
+            for(int col = 0; col < BOARD_WIDTH; col++)
+            {
+                char c;
+                switch(board[row][col])
+                {
+                    case Yellow:
+                        c = 'Y';
+                        break;
+                    case Red:
+                        c = 'R';
+                        break;
+                    case Empty:
+                        c= '-';
+                        break;
+                }
+                cout << " " << c << " |";
+            }
 
-//             cout << endl;
-//         }
+            cout << endl;
+        }
 
-//         waitKey(0);
-//         cnt++;
-//     }
-// #endif
+        waitKey(0);
+        cnt++;
+    }
+#endif
 
-//     return 0;
-// }
+    return 0;
+}
+#endif
