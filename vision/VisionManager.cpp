@@ -366,6 +366,25 @@ void VisionManager::processFrame(Mat frame, State** output)
         }
     }
 
+    for (int i=1; i<=7; i++)
+    {
+        list<Stone>::iterator it = columns[i].begin();
+        int prev_y = it->y;
+        it++;
+        for (; it != columns[i].end(); it++)
+        {
+            if(abs(it->y - prev_y) > 100)
+            {
+                columns[i].remove(*it);
+                break;
+            }
+            else
+            {
+                prev_y = it->y;
+            }
+        }
+    }
+
     for (int i=0; i < 7; i++)
     {
         columns[i].sort();
