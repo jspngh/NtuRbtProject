@@ -30,6 +30,7 @@ public:
     void processVoice();
     void processVisual();
     void processCmd(VoiceCommand cmd);
+    void processState(BehaviourState state);
 
     void userMove(Board& b);
     int doMove();

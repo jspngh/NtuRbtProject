@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <time.h>
 #include <utility>
 #include <cstdlib>
 #include <random>
@@ -8,16 +9,33 @@
 
 using namespace std;
 
-random_device rd;     // only used once to initialise (seed) engine
-mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-uniform_int_distribution<int> uni(0,9); // guaranteed unbiased
-
 HCI::HCI() : gAnimationThread(&HCI::animationLoop, this)
 {
+    // seed random number generator
+    srand (time(NULL));
+
     loopFlag = true;
+    isSpeaking = 0;
+    scaleFac = 1;
     for (int i=0; i < NR_CATEGORIES; i++)
     {
         latestResponses[i] = -1;
+    }
+    for (int i=0; i < SPEECH_PATTERN; i++)
+    {
+        speechPattern[i] = -1;
+    }
+    for (int i=0; i < SPEECH_FRAMES; i++)
+    {
+        speechPattern[i] = i;
+        speechPattern[20 + i] = i;
+        speechPattern[45 + i] = i;
+    }
+    for (int i=1; i < SPEECH_FRAMES; i++)
+    {
+        speechPattern[7 + i] = 7-i;
+        speechPattern[27 + i] = 7-i;
+        speechPattern[52 + i] = 7-i;
     }
 }
 
@@ -40,7 +58,11 @@ void HCI::animationLoop()
     }
 
     //frame counter
-    int frame = 0;
+    int animationFrame = 0;
+    int speechFrame = 0;
+
+    int animationSpeed = 0;
+    uint8_t speedCounter = 0;
 
     //Event handler
     SDL_Event e;
@@ -63,16 +85,53 @@ void HCI::animationLoop()
         SDL_RenderClear( gRenderer );
 
         //Render prompt
-        gAnimation[frame].render( (SCREEN_WIDTH - ANIMATION_WIDTH)/ 2,
-                                  (SCREEN_HEIGHT - ANIMATION_HEIGHT)/ 2 );
-        gMask.render( (SCREEN_WIDTH - ANIMATION_WIDTH)/ 2,
-                      (SCREEN_HEIGHT - ANIMATION_HEIGHT)/ 2 );
-        frame = ++frame % HCI::ANIMATION_FRAMES;
+        SDL_Rect rAnimation = {0,
+                               0,
+                               scaleFac * gAnimation[animationFrame].getWidth(),
+                               scaleFac * gAnimation[animationFrame].getHeight()};
+        SDL_Rect rMask = {0,
+                          0,
+                          scaleFac * gMask.getWidth(),
+                          scaleFac * gMask.getHeight()};
+        SDL_Rect rSpeech = {0,
+                            0,
+                            (int) (1./2 * scaleFac * gSpeech[0].getWidth()),
+                            (int) (1./2 * scaleFac * gSpeech[0].getHeight())};
+
+        gAnimation[animationFrame].render( (SCREEN_WIDTH - rAnimation.w)/ 2,
+                                  (SCREEN_HEIGHT - rAnimation.h)/ 2,
+                                  &rAnimation );
+
+        if (isSpeaking > 0)
+        {
+            isSpeaking -= 20000;
+            int tmp = speechPattern[speechFrame];
+            if (tmp > -1)
+            {
+                gSpeech[tmp].setAlpha( 130 - tmp * 6 );
+                gSpeech[tmp].render( (SCREEN_WIDTH - rSpeech.w)/ 2,
+                                     (SCREEN_HEIGHT - rSpeech.h)/ 2,
+                                     &rSpeech );
+            }
+            speechFrame = ++speechFrame % SPEECH_PATTERN;
+        }
+
+        gMask.render( (SCREEN_WIDTH - rMask.w)/ 2,
+                      (SCREEN_HEIGHT - rMask.h)/ 2,
+                      &rMask );
+
+        speedCounter = ++speedCounter % animationPattern[animationSpeed];
+        if (speedCounter == 0)
+        {
+            animationFrame = ++animationFrame % HCI::ANIMATION_FRAMES;
+            if (animationFrame == 0)
+                animationSpeed = ++animationSpeed % HCI::ANIMATION_PATTERN;
+        }
 
         //Update screen
         SDL_RenderPresent( gRenderer );
 
-        usleep(80000);
+        usleep(20000);
     }
 }
 
@@ -82,14 +141,23 @@ void HCI::msg(Message m)
     if (m.type)
     {
         // this is a BehaviourState
-        printf("HCI: received a behaviourstate message\n");
+        printf("HCI: received a behaviour state message\n");
         switch(m.s)
         {
-            case LOSING:
-                cat = 9;
+            case INVITE:
+                cat = 0;
                 break;
             case WINNING:
                 cat = 7;
+                break;
+            case WON:
+                cat = 8;
+                break;
+            case LOSING:
+                cat = 9;
+                break;
+            case LOST:
+                cat = 10;
                 break;
             case BUSY_MOVE:
                 cat = 13;
@@ -98,26 +166,30 @@ void HCI::msg(Message m)
                 cat = 13;
                 break;
             case WAITING_USER:
-                cat = 13;
-                break;
-            case BOARD_PROC_ERR:
                 cat = 14;
                 break;
-            case INVITE:
-                cat = 0;
+            case MOVE_DONE:
+                cat = 15;
+                break;
+            case BOARD_PROC_ERR:
+                cat = 16;
                 break;
             case COMPLIMENT:
                 cat = 3;
+                break;
+            case INSULT:
+                cat = 5;
                 break;
         }
     }
     else
     {
+        // this is a VoiceCommand
+        printf("HCI: received a voice command message\n");
         switch(m.c)
         {
-            printf("HCI: received a voicecommand message\n");
             case HELLO:
-                cat = 0;
+                cat = 1;
                 break;
             case HOW_ARE_YOU:
                 cat = 2;
@@ -125,7 +197,7 @@ void HCI::msg(Message m)
             case COMPLIMENTING:
                 cat = 4;
                 break;
-            case INSULT:
+            case INSULTING:
                 cat = 6;
                 break;
             case TOO_EASY:
@@ -143,6 +215,7 @@ void HCI::msg(Message m)
 
     while ((randResp = rand() % gSoundboardCategories[cat].second) == latestResp);
     Mix_PlayChannel( -1, gSoundboard[cat][randResp], 0 );
+    isSpeaking = gSoundboard[cat][randResp]->alen / 170000.0 * 1000000;
     latestResponses[cat] = randResp;
 }
 
@@ -168,6 +241,9 @@ bool HCI::init()
         //Get screen resolution
         SDL_Rect r;
         SDL_GetDisplayBounds(0, &r);
+        if(r.w * r.h > 3000000)
+            scaleFac = 2;
+
         SCREEN_WIDTH = r.w;
         SCREEN_HEIGHT = r.h;
         printf("Running on a display with resulution %dx%d\n", r.w, r.h);
@@ -204,7 +280,7 @@ bool HCI::init()
             {
                 //Initialize renderer color
                 SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-                LTexture::setRenderer(gRenderer);
+                LTexture::setRenderer( gRenderer );
 
                 //Initialize PNG loading
                 int imgFlags = IMG_INIT_PNG;
@@ -248,6 +324,21 @@ bool HCI::loadMedia()
             success = false;
         }
     }
+
+    for (int i = 0; i < HCI::SPEECH_FRAMES; i++)
+    {
+        std::string filepath =  "./hci/animations/Pulse/frame_" + std::to_string(i) + ".png";
+        if( !gSpeech[i].loadFromFile( filepath.c_str() ) )
+        {
+            printf( "Failed to load prompt texture!\n" );
+            success = false;
+        }
+        else
+        {
+            gSpeech[i].setBlendMode( SDL_BLENDMODE_BLEND );
+        }
+    }
+
     std::string filepath =  "./hci/animations/HAL 9000/mask.gif";
     if( !gMask.loadFromFile( filepath.c_str() ) )
     {

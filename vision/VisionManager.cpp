@@ -9,6 +9,7 @@
 #define SHOW_INFO
 #define SHOW_WARN
 
+#define ROBOT_ARM_I
 #define USE_KINECT
 // #define BUILD_SEPERATE
 
@@ -176,21 +177,23 @@ list<Stone> VisionManager::findStones(Mat raw)
 
     Mat processedFrame = Mat::zeros(raw.size(), CV_8UC3);
 
+#ifdef ROBOT_ARM_I
+    // find yellow
+    inRange(raw, Scalar(20, 76, 102), Scalar(35, 204, 255), frameYellow);
+    // find red
+    inRange(raw, Scalar(0, 102, 66), Scalar(10, 240, 204), redMaskL);
+    inRange(raw, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
+    frameRed = redMaskL | redMaskH;
+#else
     // find yellow
     inRange(raw, Scalar(20, 76, 102), Scalar(35, 255, 255), frameYellow);
     // find red
     inRange(raw, Scalar(0, 102, 66), Scalar(10, 255, 204), redMaskL);
     inRange(raw, Scalar(165, 102, 66), Scalar(180, 255, 204), redMaskH);
     frameRed = redMaskL | redMaskH;
+#endif
 
-    // // find yellow
-    // inRange(raw, Scalar(20, 76, 102), Scalar(35, 204, 255), frameYellow);
-    // // find red
-    // inRange(raw, Scalar(0, 102, 66), Scalar(10, 240, 204), redMaskL);
-    // inRange(raw, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
-    // frameRed = redMaskL | redMaskH;
-
-    imshow("redframe", frameRed | frameYellow);
+    imshow("stones", frameRed | frameYellow);
 
     int region_y = 100;
     int region_r = 100;
@@ -233,9 +236,13 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     result.first.x = -1;
     result.second.x = -1;
     Mat frameBlue = Mat::zeros(raw.size(), CV_8UC1);
+
     // find blue
+#ifdef ROBOT_ARM_I
+    inRange(raw, Scalar(95, 63, 76), Scalar(110, 230, 230), frameBlue);
+#else
     inRange(raw, Scalar(95, 63, 50), Scalar(120, 255, 230), frameBlue);
-    // inRange(raw, Scalar(95, 63, 76), Scalar(110, 230, 230), frameBlue);
+#endif
 
     // find the vertical edges of the board
     list<BoardEdge> edgeList;

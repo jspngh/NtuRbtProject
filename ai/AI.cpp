@@ -120,12 +120,15 @@ void AI::processCmd(VoiceCommand cmd)
 
 }
 
-void AI::processVisual()
+void AI::processState(BehaviourState state)
 {
-
+    printf("Processing behavior state: %d\n", state);
+    Message tmp = {1, {.s = state}};
+    printf("Sending command\n");
+    mHCI->msg(tmp);
 }
 
-void AI::userMove(Board& b)
+void AI::processVisual()
 {
 
 }
