@@ -9,6 +9,8 @@
 
 using namespace std;
 
+void exec(const char* cmd);
+
 HCI::HCI() : gAnimationThread(&HCI::animationLoop, this)
 {
     // seed random number generator
@@ -216,7 +218,12 @@ void HCI::msg(Message m)
     printf("before the while...\n");
     while ((randResp = rand() % gSoundboardCategories[cat].second) == latestResp);
     printf("%d, %d\n", randResp, cat);
-    Mix_PlayChannel( -1, gSoundboard[cat][randResp], 0 );
+
+    std::string filepath =  "./hci/soundboard/HAL/" + gSoundboardCategories[cat].first + "/" + to_string(randResp) + ".mp3";
+    std::string cmd = "mplayer " + filepath;
+    exec(cmd.c_str());
+
+    //Mix_PlayChannel( -1, gSoundboard[cat][randResp], 0 );
     isSpeaking = gSoundboard[cat][randResp]->alen / 170000.0 * 1000000;
     latestResponses[cat] = randResp;
 }
@@ -402,4 +409,16 @@ void HCI::close()
     Mix_Quit();
     IMG_Quit();
     SDL_Quit();
+}
+
+void exec(const char* cmd)
+{
+    char buffer[128];
+    string result = "";
+    shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) throw runtime_error("popen() failed!");
+    while (!feof(pipe.get())) {
+        if (fgets(buffer, 128, pipe.get()) != NULL)
+            result += buffer;
+    }
 }
