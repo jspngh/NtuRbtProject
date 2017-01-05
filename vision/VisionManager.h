@@ -83,6 +83,7 @@ class VisionManager{
     private:
         KinectManager *kinectManager;
         std::pair<BoardEdge,BoardEdge> boardLocation;
+        BoardEdge topBorder;
 
         std::list<Stone> findStones(cv::Mat raw);
         std::pair<BoardEdge,BoardEdge> findBoardEdges(cv::Mat raw);
