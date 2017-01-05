@@ -117,9 +117,9 @@ void Robot::calibBoard(vector<int> cols)
     setSpeed(lineSpeed, ptpSpeed);
 
     resetJoints();
-    openGripper();
-    sleep(3000);
-    closeGripper();
+    // openGripper();
+    // sleep(3000);
+    // closeGripper();
 
     auto it = cols.begin();
     while (it != cols.end())
