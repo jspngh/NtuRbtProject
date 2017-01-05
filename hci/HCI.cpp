@@ -173,8 +173,11 @@ void HCI::msg(Message m)
             case MOVE_DONE:
                 cat = 15;
                 break;
-            case BOARD_PROC_ERR:
+            case MOVE_BEGIN:
                 cat = 16;
+                break;
+            case BOARD_PROC_ERR:
+                cat = 17;
                 break;
             case COMPLIMENT:
                 cat = 3;
@@ -219,7 +222,7 @@ void HCI::msg(Message m)
     while ((randResp = rand() % gSoundboardCategories[cat].second) == latestResp);
     printf("%d, %d\n", randResp, cat);
 
-    std::string filepath =  "./hci/soundboard/HAL/" + gSoundboardCategories[cat].first + "/" + to_string(randResp) + ".mp3";
+    std::string filepath =  "./hci/soundboard/HAL/" + gSoundboardCategories[cat].first + "/" + to_string(randResp + 1) + ".mp3";
     std::string cmd = "mplayer " + filepath;
     exec(cmd.c_str());
 

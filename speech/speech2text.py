@@ -45,22 +45,15 @@ def phrase_callback(model, audio):
         pass
 
 def main():
-    # source = None
-    # for i, microphone_name in enumerate(sr.Microphone.list_microphone_names()):
-    #     if microphone_name == "pulse":
-    #         source = sr.Microphone(device_index=i)
-
     heartbeat()
     model = sr.Recognizer()
-    model.energy_threshold = 400
+    model.energy_threshold = 4000
     source = sr.Microphone()
     model.operation_timeout = 5
     model.listen_in_background(source, phrase_callback, phrase_time_limit = 4)
 
     while True:
         try:
-            print "in while loop"
-            time.sleep(1)
             pass
         except KeyboardInterrupt:
             break

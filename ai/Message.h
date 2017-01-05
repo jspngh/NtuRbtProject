@@ -10,6 +10,7 @@ enum BehaviourState
     LOST,
     BUSY_MOVE,
     MOVE_DONE,
+    MOVE_BEGIN,
     WAITING_VISION,
     WAITING_USER,
     BOARD_PROC_ERR,

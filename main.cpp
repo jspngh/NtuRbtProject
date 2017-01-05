@@ -26,6 +26,8 @@ int main (int argc, char* args[])
     Algorithm algorithm;
     AI ai(robot, hci, c, algorithm, &b);
 
+    //while(1) { usleep(1.e6); };
+
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
     VisionManager vm(&device);
@@ -42,6 +44,7 @@ int main (int argc, char* args[])
     int depth = 6;
 
     int winner = -1;
+    bool first_move = true;
 
     while (winner == -1)
     {
@@ -55,8 +58,14 @@ int main (int argc, char* args[])
         }
 
         // AI's move
+        if (first_move)
+        {
+            ai.processState(MOVE_BEGIN);
+            first_move = false;
+        }
         col = ai.doMove();
         waitRobotMove(b, vm, col);
+        ai.processState(MOVE_DONE);
 
         // b.doMove(col, player_ai);
 
@@ -72,6 +81,15 @@ int main (int argc, char* args[])
     }
 
     cout << b << endl;
+
+    if (winner == player_ai)
+    {
+        ai.processState(WON);
+    }
+    else
+    {
+        ai.processState(LOST);
+    }
 
     cout << "game is finished" << endl;
     cout << "winner: " << winner << endl;

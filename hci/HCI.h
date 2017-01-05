@@ -28,7 +28,7 @@ private:
     int SCREEN_WIDTH;
     int SCREEN_HEIGHT;
 
-    const static int NR_CATEGORIES = 17;
+    const static int NR_CATEGORIES = 18;
     const static int MEM_DEPTH = 3;
     const static int ANIMATION_FRAMES = 80;
     const static int ANIMATION_PATTERN = 11;
@@ -39,8 +39,8 @@ private:
         {"hello",2},
         {"hello_response",2},
         {"how_are_you_response",3},
-        {"compliment",1},
-        {"compliment_response",1},
+        {"compliment",2},
+        {"compliment_response",2},
         {"insult",2},
         {"insult_response",2},
         {"winning",4},
@@ -52,6 +52,7 @@ private:
         {"busy",0},
         {"waiting",3},
         {"your_move",3},
+        {"my_move",3},
         {"proc_err",0},
     };
 
