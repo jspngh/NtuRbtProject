@@ -108,6 +108,7 @@ void getUserMove(Board& b, VisionManager& vm)
     if (r == PROC_ERR)
     {
         //TODO: do some interaction with the user
+        cout << b << endl;
         cout << "ERR: could not get a correct user move, exiting..." << endl;
         exit(-1);
     }
@@ -172,6 +173,7 @@ void waitRobotMove(Board& b, VisionManager& vm, int expected_col)
     if (r == PROC_ERR)
     {
         //TODO: do some interaction with the user
+        cout << b << endl;
         cout << "ERR: could not get the correct robot move, exiting..." << endl;
         exit(-1);
     }

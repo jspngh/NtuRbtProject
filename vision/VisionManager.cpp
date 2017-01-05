@@ -5,7 +5,7 @@
 
 #include "VisionManager.h"
 
-#define SHOW_DEBUG
+// #define SHOW_DEBUG
 #define SHOW_INFO
 #define SHOW_WARN
 
@@ -130,7 +130,7 @@ bool VisionManager::grow_region(Mat& m, int y, int x, int i)
     // if the region is too small, ignore it
     if (region_size < REGION_THRESHOLD)
     {
-        DEBUG("region only has size: " + to_string(region_size));
+        // DEBUG("region only has size: " + to_string(region_size));
         for (int y = 0; y < h; ++y)
         {
             for (int x = 0; x < w; ++x)
@@ -185,6 +185,7 @@ list<Stone> VisionManager::findStones(Mat raw)
     inRange(raw, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
     frameRed = redMaskL | redMaskH;
 #else
+    INFO("working with robot arm II");
     // find yellow
     inRange(raw, Scalar(20, 76, 102), Scalar(35, 255, 255), frameYellow);
     // find red
@@ -193,7 +194,10 @@ list<Stone> VisionManager::findStones(Mat raw)
     frameRed = redMaskL | redMaskH;
 #endif
 
+#ifdef SHOW_DEBUG
     imshow("stones", frameRed | frameYellow);
+    // cv::imwrite("/home/nemphis/documents/robotics/project/vision/images/stones_debug.jpg", frameRed | frameYellow);
+#endif
 
     int region_y = 100;
     int region_r = 100;
@@ -208,7 +212,7 @@ list<Stone> VisionManager::findStones(Mat raw)
                 {
                     Stone s = getRegionCentroid(frameYellow, region_y, true);
                     result.push_back(s);
-                    INFO("region found, with centroid at " + to_string(s.x) + " " + to_string(s.y));
+                    // INFO("region found, with centroid at " + to_string(s.x) + " " + to_string(s.y));
                     region_y = (region_y + 10) % 256;
                 }
             }
@@ -220,7 +224,7 @@ list<Stone> VisionManager::findStones(Mat raw)
                 {
                     Stone s = getRegionCentroid(frameRed, region_r, false);
                     result.push_back(s);
-                    INFO("region found, with centroid at " + to_string(s.x) + " " + to_string(s.y));
+                    // INFO("region found, with centroid at " + to_string(s.x) + " " + to_string(s.y));
                     region_r = (region_r + 10) % 256;
                 }
             }
@@ -301,6 +305,7 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
         frameBlue.at<uchar>(j,result.second.x) = 255;
     }
     cv::imshow("board",frameBlue);
+    // cv::imwrite("/home/nemphis/documents/robotics/project/vision/images/board_debug.jpg", frameBlue);
 #endif
 
     return result;
@@ -390,15 +395,72 @@ VisionResult VisionManager::updateBoard(Board& board)
 
     int diff = 0;
     int xdiff = -1, ydiff = -1;
+
+    cout << "previous state" << endl;
+    for(int row=0; row < BOARD_HEIGHT; row++)
+    {
+        cout << " |";
+        for(int col = 0; col < BOARD_WIDTH; col++)
+        {
+            char c;
+            switch(board.getState(row,col))
+            {
+                case Yellow:
+                    c = 'Y';
+                    break;
+                case Red:
+                    c = 'R';
+                    break;
+                case Empty:
+                    c= '-';
+                    break;
+            }
+            cout << " " << c << " |";
+        }
+
+        cout << endl;
+    }
+
+    cout << "current state" << endl;
+    for(int row=0; row < BOARD_HEIGHT; row++)
+    {
+        cout << " |";
+        for(int col = 0; col < BOARD_WIDTH; col++)
+        {
+            char c;
+            switch(tmp[row][col])
+            {
+                case Yellow:
+                    c = 'Y';
+                    break;
+                case Red:
+                    c = 'R';
+                    break;
+                case Empty:
+                    c= '-';
+                    break;
+            }
+            cout << " " << c << " |";
+        }
+
+        cout << endl;
+    }
+
     for (int i=0; i<BOARD_HEIGHT; i++)
     {
         for (int j=0; j<BOARD_WIDTH; j++)
         {
+            if (tmp[i][j] != Empty)
+                DEBUG("stone detected at x " + to_string(i) + " y " + to_string(j));
+
             if (tmp[i][j] != board.getState(i,j))
             {
                 if (board.getState(i,j) != Empty)
                 {
                     WARN("error during processing of board");
+                    diff = 2;
+                    i = BOARD_HEIGHT;
+                    j = BOARD_WIDTH;
                 }
                 diff++;
                 xdiff = i;
@@ -414,7 +476,7 @@ VisionResult VisionManager::updateBoard(Board& board)
     }
     if (diff > 1)
     {
-        DEBUG("too many changes detected");
+        WARN("too many changes detected");
         return PROC_ERR;
     }
 

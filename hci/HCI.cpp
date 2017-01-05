@@ -252,11 +252,11 @@ bool HCI::init()
 
         //Create window
         gWindow = SDL_CreateWindow( "HAL 9000",
-                                     SDL_WINDOWPOS_UNDEFINED,
-                                     SDL_WINDOWPOS_UNDEFINED,
+                                     SDL_WINDOWPOS_CENTERED,
+                                     SDL_WINDOWPOS_CENTERED,
                                      HCI::SCREEN_WIDTH,
                                      HCI::SCREEN_HEIGHT,
-                                     SDL_WINDOW_MAXIMIZED | SDL_WINDOW_ALLOW_HIGHDPI );
+                                     SDL_WINDOW_ALLOW_HIGHDPI );
 
         if( gWindow == NULL )
         {
@@ -265,11 +265,11 @@ bool HCI::init()
         }
         else
         {
-            if( SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN) < 0)
-            {
-                printf( "Window could not be set fullscreen! SDL Error: %s\n", SDL_GetError() );
-                success = false;
-            }
+            // if( SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN) < 0)
+            // {
+            //     printf( "Window could not be set fullscreen! SDL Error: %s\n", SDL_GetError() );
+            //     success = false;
+            // }
 
             //Create vsynced renderer for window
             gRenderer = SDL_CreateRenderer( gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
