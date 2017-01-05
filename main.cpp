@@ -28,7 +28,7 @@ int main (int argc, char* args[])
 
     while(1)
     {
-        usleep(1000);
+        usleep(1000000);
     }
 
     Freenect::Freenect freenect;

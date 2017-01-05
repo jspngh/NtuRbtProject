@@ -16,31 +16,33 @@ public:
 
     void msg(Message m);
 private:
-    std::thread gAnimationThread;
     void animationLoop();
+
+    std::thread gAnimationThread;
     bool SDL_OK;
     bool loopFlag;
+    int isSpeaking;
+    int scaleFac;
 
     //Screen dimension constants
     int SCREEN_WIDTH;
     int SCREEN_HEIGHT;
 
-    //Animation dimension constants
-    const static int ANIMATION_WIDTH = 500;
-    const static int ANIMATION_HEIGHT = 500;
-
-    const static int NR_CATEGORIES = 15;
+    const static int NR_CATEGORIES = 17;
     const static int MEM_DEPTH = 3;
-    const static int ANIMATION_FRAMES = 106;
+    const static int ANIMATION_FRAMES = 80;
+    const static int ANIMATION_PATTERN = 11;
+    const static int SPEECH_FRAMES = 8;
+    const static int SPEECH_PATTERN = 65;
 
     std::pair<std::string,int> gSoundboardCategories[NR_CATEGORIES] = {
-        {"hello",4},
-        {"hello_response",0},
+        {"hello",2},
+        {"hello_response",2},
         {"how_are_you_response",3},
-        {"compliment",2},
-        {"compliment_response",0},
-        {"insult",0},
-        {"insult_response",0},
+        {"compliment",1},
+        {"compliment_response",1},
+        {"insult",2},
+        {"insult_response",2},
         {"winning",4},
         {"won",3},
         {"losing",3},
@@ -48,13 +50,18 @@ private:
         {"too_easy",3},
         {"too_hard",4},
         {"busy",0},
+        {"waiting",3},
+        {"your_move",3},
         {"proc_err",0},
     };
 
+    int animationPattern[ANIMATION_PATTERN] = { 3, 5, 4, 4, 4, 3, 3, 4, 4, 4, 4 };
+    int speechPattern[SPEECH_PATTERN];
     int latestResponses[NR_CATEGORIES];
 
     //Animation textures
     LTexture gAnimation[ANIMATION_FRAMES];
+    LTexture gSpeech[SPEECH_FRAMES];
     LTexture gMask;
 
     Mix_Chunk** gSoundboard[NR_CATEGORIES] = { NULL };
