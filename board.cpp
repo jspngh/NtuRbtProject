@@ -46,6 +46,19 @@ State** Board::getBoardCopy()
     return tmp;
 }
 
+Board Board::getDeepCopy()
+{
+    Board result;
+    for (int i=0; i<BOARD_HEIGHT; i++)
+    {
+        for (int j=0; j<BOARD_WIDTH; j++)
+        {
+            result.board[i][j] = getState(i,j);
+        }
+    }
+    return result;
+}
+
 bool Board::isMoveLegal(int col)
 {
     return board[0][col] == State::Empty;

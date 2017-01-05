@@ -82,6 +82,9 @@ void getUserMove(Board& b, VisionManager& vm)
 {
     cout << "Player, it's your turn now!" << endl;
 
+    Board doublecheck_board = b.getDeepCopy();
+    Board reset_board = b.getDeepCopy();
+
     bool stop = false;
     VisionResult r;
     int attempts = 3;
@@ -101,6 +104,22 @@ void getUserMove(Board& b, VisionManager& vm)
                 break;
             case SUCCESS:
                 stop = true;
+                r = vm.updateBoard(doublecheck_board);
+                for (int i=0; i<BOARD_HEIGHT; i++)
+                {
+                    for (int j=0; j<BOARD_WIDTH; j++)
+                    {
+                        if (doublecheck_board.getState(i,j) != b.getState(i,j))
+                        {
+                            cout << "ERR: user move was detected wrongly" << endl;
+                            stop = false;
+                            i = BOARD_HEIGHT;
+                            j = BOARD_WIDTH;
+                            b = reset_board.getDeepCopy();
+                            doublecheck_board = reset_board.getDeepCopy();
+                        }
+                    }
+                }
                 break;
         }
     }
