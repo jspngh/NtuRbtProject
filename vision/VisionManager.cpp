@@ -5,12 +5,12 @@
 
 #include "VisionManager.h"
 
-#define SHOW_DEBUG
+//#define SHOW_DEBUG
 #define SHOW_INFO
 #define SHOW_WARN
 
 #define USE_KINECT
-// #define BUILD_SEPERATE
+ //#define BUILD_SEPERATE
 
 using namespace cv;
 using namespace std;
@@ -190,7 +190,7 @@ list<Stone> VisionManager::findStones(Mat raw)
     // inRange(raw, Scalar(165, 102, 66), Scalar(180, 240, 204), redMaskH);
     // frameRed = redMaskL | redMaskH;
 
-    imshow("redframe", frameRed | frameYellow);
+    //imshow("redframe", frameRed | frameYellow);
 
     int region_y = 100;
     int region_r = 100;

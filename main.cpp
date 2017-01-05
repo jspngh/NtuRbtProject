@@ -21,14 +21,14 @@ int main (int argc, char* args[])
 {
     Board b;
     hci = new HCI();
-    // robot = new Robot();
+    //robot = new Robot();
     S2Tcomm c;
     Algorithm algorithm;
-    AI ai(robot, hci, c, algorithm, b);
+    AI ai(robot, hci, c, algorithm, &b);
 
-    while(true)
+    while(1)
     {
-        usleep(10000000);
+        usleep(1000);
     }
 
     Freenect::Freenect freenect;

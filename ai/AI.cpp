@@ -17,7 +17,7 @@
 
 using namespace std;
 
-AI::AI(Robot* robot, HCI* hci, S2Tcomm c, Algorithm& algo, Board& board):
+AI::AI(Robot* robot, HCI* hci, S2Tcomm c, Algorithm& algo, Board* board):
     mVoiceThread(&AI::processVoice, this),
     mRobot(robot),
     mHCI(hci),
@@ -132,8 +132,10 @@ void AI::userMove(Board& b)
 
 int AI::doMove()
 {
+    cout << "board before generating move: " << endl;
+    cout << *mBoard << endl;
     int player_ai = 1;
-    int col = mAlgorithm.nextMovePython(player_ai, mBoard);
+    int col = mAlgorithm.nextMove(player_ai, *mBoard);
     cout << "AI selected col: " << col << endl;
 
     mRobot->resetJoints();

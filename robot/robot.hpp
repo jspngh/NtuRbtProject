@@ -62,12 +62,12 @@ class Robot
         // for second robot
         const float board_x0 = 99;
         const float board_dx = -33;
-        const float board_z_drop = -5;
+        const float board_z_drop = 0;
         const float board_z_hover = 50;
         const float board_y = 550;
 
-        const float piece_x = 239;
-        const float piece_z_grab = -190;
+        const float piece_x = 231;
+        const float piece_z_grab = -195;
         const float piece_z_hover = 0;
         const float piece_y = 555;
 };

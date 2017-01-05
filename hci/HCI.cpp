@@ -113,9 +113,9 @@ void HCI::msg(Message m)
     }
     else
     {
+        printf("HCI: received a voicecommand message\n");
         switch(m.c)
         {
-            printf("HCI: received a voicecommand message\n");
             case HELLO:
                 cat = 0;
                 break;
@@ -139,9 +139,12 @@ void HCI::msg(Message m)
     }
     int randResp, latestResp;
     randResp = latestResp = latestResponses[cat];
+    printf("before the if...\n");
     if(gSoundboardCategories[cat].second < 1) return;
 
+    printf("before the while...\n");
     while ((randResp = rand() % gSoundboardCategories[cat].second) == latestResp);
+    printf("%d, %d\n", randResp, cat);
     Mix_PlayChannel( -1, gSoundboard[cat][randResp], 0 );
     latestResponses[cat] = randResp;
 }
