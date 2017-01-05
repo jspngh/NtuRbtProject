@@ -11,7 +11,7 @@
 
 #define MAX_DEPTH 8
 #define MIN_DEPTH 2
-#define DEFAULT_DEPTH 4
+#define DEFAULT_DEPTH 6
 
 class Algorithm
 {

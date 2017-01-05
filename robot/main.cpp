@@ -8,6 +8,7 @@ using namespace std;
 int main(int, char**)
 {
     Robot *r = new Robot();
+    r->setSpeed(50, 5);
     r->resetJoints();
     r->pickUpPiece();
     r->resetJoints();
