@@ -194,7 +194,7 @@ list<Stone> VisionManager::findStones(Mat raw)
     frameRed = redMaskL | redMaskH;
 #endif
 
-#ifdef SHOW_DEBUG
+#ifdef BUILD_SEPERATE
     imshow("stones", frameRed | frameYellow);
     // cv::imwrite("/home/nemphis/documents/robotics/project/vision/images/stones_debug.jpg", frameRed | frameYellow);
 #endif
@@ -243,7 +243,7 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
 
     // find blue
 #ifdef ROBOT_ARM_I
-    inRange(raw, Scalar(95, 63, 76), Scalar(110, 230, 230), frameBlue);
+    inRange(raw, Scalar(95, 63, 76), Scalar(120, 230, 230), frameBlue);
 #else
     inRange(raw, Scalar(95, 63, 50), Scalar(120, 255, 230), frameBlue);
 #endif
@@ -278,9 +278,45 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     edgeList.sort();
     edgeList.reverse();
 
+    // find the horizontal top edge of the board
+    list<BoardEdge> topBorderList;
+    rectWidth = 100;
+    rectHeight = 5;
+    for (int i = rectWidth; i < raw.cols - rectWidth; i+=10)
+    {
+        for (int j = 0; j < raw.rows - rectHeight; j+=10)
+        {
+            int currScore = 0;
+            for (int di = 0; di <= rectWidth; di++)
+            {
+                for (int dj = -rectHeight; dj <= rectHeight; dj++)
+                {
+                    int blue = (frameBlue.at<uchar>(j+dj,i+di) == 255) ? 1 : -1;
+                    int tmp = dj < 0 ? -1 : 1;
+                    currScore += tmp * blue;
+                }
+            }
+            if (abs(currScore) > 350)
+            {
+                BoardEdge newBorder = {i, j, abs(currScore)};
+                topBorderList.push_back(newBorder);
+            }
+        }
+    }
+
+    list<BoardEdge>::iterator it = topBorderList.begin();
+    topBorder = *it;
+    it++;
+    for (; it!=topBorderList.end(); it++)
+    {
+        if (it->y < topBorder.y)
+            topBorder = *it;
+    }
+
+
     INFO("number of edges: " +  to_string(edgeList.size()));
 
-    list<BoardEdge>::iterator it=edgeList.begin();
+    it = edgeList.begin();
     if(it==edgeList.end())
         return result;
 
@@ -298,11 +334,15 @@ pair<BoardEdge,BoardEdge> VisionManager::findBoardEdges(Mat raw)
     DEBUG("first: " + to_string(result.first.score) + " at x " + to_string(result.first.x) +" at y " + to_string(result.first.y));
     DEBUG("second: " + to_string(result.second.score) + " at x " + to_string(result.second.x) +" at y " + to_string(result.second.y));
 
-#ifdef SHOW_DEBUG
+#ifdef BUILD_SEPERATE
     for (int j=result.first.y; j < frameBlue.rows; j++)
     {
         frameBlue.at<uchar>(j,result.first.x) = 255;
         frameBlue.at<uchar>(j,result.second.x) = 255;
+    }
+    for (int i=0; i < frameBlue.cols; i++)
+    {
+        frameBlue.at<uchar>(topBorder.y,i) = 255;
     }
     cv::imshow("board",frameBlue);
     // cv::imwrite("/home/nemphis/documents/robotics/project/vision/images/board_debug.jpg", frameBlue);
@@ -358,29 +398,11 @@ void VisionManager::processFrame(Mat frame, State** output)
 
         for (int i=1; i<=7; i++)
         {
-            if (it->x < left.x + i * columnWidth)
+            if (it->x < left.x + i * columnWidth &&
+                it->y > topBorder.y)
             {
                 columns[i-1].push_back(*it);
                 break;
-            }
-        }
-    }
-
-    for (int i=1; i<=7; i++)
-    {
-        list<Stone>::iterator it = columns[i].begin();
-        int prev_y = it->y;
-        it++;
-        for (; it != columns[i].end(); it++)
-        {
-            if(abs(it->y - prev_y) > 100)
-            {
-                columns[i].remove(*it);
-                break;
-            }
-            else
-            {
-                prev_y = it->y;
             }
         }
     }
