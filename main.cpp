@@ -24,7 +24,7 @@ int main (int argc, char* args[])
     robot = new Robot();
     S2Tcomm c;
     Algorithm algorithm;
-    AI ai(robot, hci, c, algorithm, b);
+    AI ai(robot, hci, c, algorithm, &b);
 
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);

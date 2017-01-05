@@ -29,12 +29,12 @@ class Robot
         void resetJoints();
         void goHome();
         void calibBoard(std::vector<int> cols);
+        void openGripper();
+        void closeGripper();
 
     private:
         void move(RobotCoord c);
         void rotateGripper(double angle);
-        void openGripper();
-        void closeGripper();
         void sleep(int msec);
 
         int sockfd();
@@ -57,7 +57,7 @@ class Robot
         const float piece_x = 205;
         const float piece_z_grab = -220;
         const float piece_z_hover = 0;
-        const float piece_y = 450;
+        const float piece_y = 555;
 };
 
 #endif

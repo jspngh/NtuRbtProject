@@ -23,8 +23,7 @@ struct S2Tcomm
 class AI
 {
 public:
-
-    AI(Robot* robot, HCI* hci, S2Tcomm c, Algorithm& algorithm, Board& board);
+    AI(Robot* robot, HCI* hci, S2Tcomm c, Algorithm& algorithm, Board* board);
 
     // in different thread
     void processVoice();
@@ -42,7 +41,7 @@ public:
 private:
     Robot* mRobot;
     HCI* mHCI;
-    Board mBoard;
+    Board* mBoard;
     Algorithm mAlgorithm;
 
     S2Tcomm mComm;
