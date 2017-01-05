@@ -27,6 +27,7 @@ class Board
         State getState(int row, int col);
         void setState(int row, int col, State state);
         State** getBoardCopy();
+        Board getDeepCopy();
 
         bool isMoveLegal(int col);
         bool doMove(int col, int player);
