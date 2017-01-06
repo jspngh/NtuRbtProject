@@ -13,7 +13,7 @@
 
 #include "AI.h"
 
-// #define MOCK_VOICE
+#define MOCK_VOICE
 
 using namespace std;
 
