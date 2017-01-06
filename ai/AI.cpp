@@ -141,10 +141,10 @@ int AI::doMove()
     int col = mAlgorithm.nextMove(player_ai, *mBoard);
     cout << "AI selected col: " << col << endl;
 
-    mRobot->resetJoints();
-    mRobot->pickUpPiece();
-    mRobot->dropPiece(col);
-    mRobot->resetJoints();
+    // mRobot->resetJoints();
+    // mRobot->pickUpPiece();
+    // mRobot->dropPiece(col);
+    // mRobot->resetJoints();
 
     return col;
 }

@@ -28,7 +28,7 @@ private:
     int SCREEN_WIDTH;
     int SCREEN_HEIGHT;
 
-    const static int NR_CATEGORIES = 18;
+    const static int NR_CATEGORIES = 19;
     const static int MEM_DEPTH = 3;
     const static int ANIMATION_FRAMES = 80;
     const static int ANIMATION_PATTERN = 11;
@@ -53,7 +53,8 @@ private:
         {"waiting",3},
         {"your_move",3},
         {"my_move",3},
-        {"proc_err",0},
+        {"proc_err",2},
+        {"begin_game",2},
     };
 
     int animationPattern[ANIMATION_PATTERN] = { 3, 5, 4, 4, 4, 3, 3, 4, 4, 4, 4 };

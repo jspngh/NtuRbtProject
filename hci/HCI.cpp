@@ -147,7 +147,7 @@ void HCI::msg(Message m)
         switch(m.s)
         {
             case INVITE:
-                cat = 0;
+                cat = 18;
                 break;
             case WINNING:
                 cat = 7;
