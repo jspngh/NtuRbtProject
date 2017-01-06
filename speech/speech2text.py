@@ -4,13 +4,17 @@ import time
 import pandas as pd
 import socket
 
+time_cmd_send = None
+
 def send_action(command):
-    HOST = 'localhost'
-    PORT = 50007
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
-    s.sendall(str(command))
-    s.close()
+    global time_cmd_send
+    time_cmd_send = time.time()
+    # HOST = 'localhost'
+    # PORT = 50007
+    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # s.connect((HOST, PORT))
+    # s.sendall(str(command))
+    # s.close()
 
 def heartbeat():
     with open('last_callback.txt', 'w') as f:
@@ -28,10 +32,13 @@ def similarity(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 def phrase_callback(model, audio):
-    print "in callback"
     heartbeat()
+    print "in callback"
+    if time_cmd_send is not None and time.time() - time_cmd_send < 5:
+        print "busy..."
+        return
     try:
-        phrase = model.recognize_sphinx(audio)
+        phrase = model.recognize_google(audio)
         index_best_match, score = find_best_match(phrase)
         if score > 0.6:
             print "score:           ", score

@@ -222,12 +222,13 @@ void HCI::msg(Message m)
     while ((randResp = rand() % gSoundboardCategories[cat].second) == latestResp);
     printf("%d, %d\n", randResp, cat);
 
-    std::string filepath =  "./hci/soundboard/HAL/" + gSoundboardCategories[cat].first + "/" + to_string(randResp + 1) + ".mp3";
-    std::string cmd = "mplayer " + filepath;
-    exec(cmd.c_str());
+//    std::string filepath =  "./hci/soundboard/HAL/" + gSoundboardCategories[cat].first + "/" + to_string(randResp + 1) + ".mp3";
+//    std::string cmd = "mplayer " + filepath;
+//    exec(cmd.c_str());
 
-    //Mix_PlayChannel( -1, gSoundboard[cat][randResp], 0 );
+    Mix_PlayChannel( -1, gSoundboard[cat][randResp], 0 );
     isSpeaking = gSoundboard[cat][randResp]->alen / 170000.0 * 1000000;
+    printf("%d\n", isSpeaking);
     latestResponses[cat] = randResp;
 }
 

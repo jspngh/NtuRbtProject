@@ -26,7 +26,7 @@ int main (int argc, char* args[])
     Algorithm algorithm;
     AI ai(robot, hci, c, algorithm, &b);
 
-    //while(1) { usleep(1.e6); };
+    while(1) { usleep(1.e6); };
 
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
