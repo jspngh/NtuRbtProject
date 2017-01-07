@@ -160,11 +160,6 @@ void getUserMove(Board& b, VisionManager& vm, AI& ai)
 
     cout << "player made his/her move" << endl;
     cout << b << endl;
-
-    int score_user = algorithm.evaluateBoard(player_user, b);
-    int score_ai = algorithm.evaluateBoard(player_ai, b);
-    cout << "score of user after move " << score_user << endl;
-    cout << "score of ai after move " << score_ai << endl;
 }
 
 void waitRobotMove(Board& b, VisionManager& vm, AI& ai, int expected_col)
