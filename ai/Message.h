@@ -4,6 +4,7 @@
 enum BehaviourState
 {
     INVITE,
+    BEGIN_GAME,
     WINNING,
     WON,
     LOSING,

@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <ctime>
+#include <random>
 
 #include "board.hpp"
 #include "algorithm/minimax.hpp"
@@ -11,11 +12,15 @@
 
 using namespace std;
 
+Algorithm algorithm;
 Robot* robot;
 HCI* hci;
 
-void getUserMove(Board& b, VisionManager& vm);
-void waitRobotMove(Board& b, VisionManager& vm, int expected_col);
+int player_user = 0;
+int player_ai = 1;
+
+void getUserMove(Board& b, VisionManager& vm, AI& ai);
+void waitRobotMove(Board& b, VisionManager& vm, AI& ai, int expected_col);
 
 int main (int argc, char* args[])
 {
@@ -23,10 +28,7 @@ int main (int argc, char* args[])
     hci = new HCI();
     robot = new Robot();
     S2Tcomm c;
-    Algorithm algorithm;
     AI ai(robot, hci, c, algorithm, &b);
-
-    while(1) { usleep(1.e6); };
 
     Freenect::Freenect freenect;
     KinectManager& device = freenect.createDevice<KinectManager>(0);
@@ -37,18 +39,25 @@ int main (int argc, char* args[])
         exit(-1);
     }
 
-
-    int player_user = 0;
-    int player_ai = 1;
     int col;
     int depth = 6;
 
     int winner = -1;
     bool first_move = true;
 
+    sleep(5);
+    ai.processState(INVITE);
+
     while (winner == -1)
     {
-        getUserMove(b, vm);
+        sleep(5);
+        if (first_move)
+        {
+            ai.processState(BEGIN_GAME);
+            sleep(5);
+        }
+
+        getUserMove(b, vm, ai);
 
         // check if user won
         if (b.getWinner() != -1)
@@ -58,23 +67,21 @@ int main (int argc, char* args[])
         }
 
         // AI's move
-        if (first_move)
+        if (rand() % 3 == 0 || first_move)
         {
             ai.processState(MOVE_BEGIN);
             first_move = false;
         }
+
         col = ai.doMove();
-        waitRobotMove(b, vm, col);
-        ai.processState(MOVE_DONE);
-
-        // b.doMove(col, player_ai);
-
+        waitRobotMove(b, vm, ai, col);
         // check if AI won
         if (b.getWinner() != -1)
         {
             winner = player_ai;
             break;
         }
+        ai.processState(MOVE_DONE);
 
         // print board
         cout << b << endl;
@@ -83,20 +90,17 @@ int main (int argc, char* args[])
     cout << b << endl;
 
     if (winner == player_ai)
-    {
         ai.processState(WON);
-    }
     else
-    {
         ai.processState(LOST);
-    }
+    sleep(10);
 
     cout << "game is finished" << endl;
     cout << "winner: " << winner << endl;
     vm.stopVision();
 }
 
-void getUserMove(Board& b, VisionManager& vm)
+void getUserMove(Board& b, VisionManager& vm, AI& ai)
 {
     cout << "Player, it's your turn now!" << endl;
 
@@ -122,6 +126,7 @@ void getUserMove(Board& b, VisionManager& vm)
                 break;
             case SUCCESS:
                 stop = true;
+                sleep(1);
                 r = vm.updateBoard(doublecheck_board);
                 for (int i=0; i<BOARD_HEIGHT; i++)
                 {
@@ -144,17 +149,25 @@ void getUserMove(Board& b, VisionManager& vm)
 
     if (r == PROC_ERR)
     {
-        //TODO: do some interaction with the user
+        ai.processState(BOARD_PROC_ERR);
         cout << b << endl;
         cout << "ERR: could not get a correct user move, exiting..." << endl;
         exit(-1);
     }
 
+    if (rand() % 5 == 0)
+        ai.processState(COMPLIMENT);
+
     cout << "player made his/her move" << endl;
     cout << b << endl;
+
+    int score_user = algorithm.evaluateBoard(player_user, b);
+    int score_ai = algorithm.evaluateBoard(player_ai, b);
+    cout << "score of user after move " << score_user << endl;
+    cout << "score of ai after move " << score_ai << endl;
 }
 
-void waitRobotMove(Board& b, VisionManager& vm, int expected_col)
+void waitRobotMove(Board& b, VisionManager& vm, AI& ai, int expected_col)
 {
     cout << "Robot is making it's move" << endl;
 
@@ -209,7 +222,7 @@ void waitRobotMove(Board& b, VisionManager& vm, int expected_col)
 
     if (r == PROC_ERR)
     {
-        //TODO: do some interaction with the user
+        ai.processState(BOARD_PROC_ERR);
         cout << b << endl;
         cout << "ERR: could not get the correct robot move, exiting..." << endl;
         exit(-1);
