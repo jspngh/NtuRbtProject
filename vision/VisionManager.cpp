@@ -11,7 +11,7 @@
 
 #define ROBOT_ARM_I
 #define USE_KINECT
-// #define BUILD_SEPERATE
+//#define BUILD_SEPERATE
 
 using namespace cv;
 using namespace std;

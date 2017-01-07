@@ -99,7 +99,7 @@ int Algorithm::nextMovePython(int player, Board board)
 int Algorithm::evaluateBoard(int player, Board board)
 {
     int opp = 0;
-    if (player == -1)
+    if (player == -1 || player == 0)
     {
         player = 0;
         opp = 1;
