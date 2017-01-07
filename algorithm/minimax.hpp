@@ -11,7 +11,7 @@
 
 #define MAX_DEPTH 8
 #define MIN_DEPTH 2
-#define DEFAULT_DEPTH 6
+#define DEFAULT_DEPTH 4
 
 class Algorithm
 {
@@ -32,11 +32,12 @@ class Algorithm
 
         int nextMovePython(int player, Board board);
 
+        int evaluateBoard(int player, Board board);
+
     private:
         int mDepth;
 
         int negamax(int player, Board board, int depth);
-        int evaluateBoard(int player, Board board);
         std::string exec(const char* cmd);
         void board_to_csv(Board board);
 };

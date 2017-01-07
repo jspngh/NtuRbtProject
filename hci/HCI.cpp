@@ -147,6 +147,9 @@ void HCI::msg(Message m)
         switch(m.s)
         {
             case INVITE:
+                cat = 0;
+                break;
+            case BEGIN_GAME:
                 cat = 18;
                 break;
             case WINNING:
@@ -213,6 +216,10 @@ void HCI::msg(Message m)
         }
 
     }
+
+    if (isSpeaking > 0)
+        return;
+
     int randResp, latestResp;
     randResp = latestResp = latestResponses[cat];
     printf("before the if...\n");

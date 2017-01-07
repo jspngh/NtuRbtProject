@@ -9,12 +9,12 @@ time_cmd_send = None
 def send_action(command):
     global time_cmd_send
     time_cmd_send = time.time()
-    # HOST = 'localhost'
-    # PORT = 50007
-    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # s.connect((HOST, PORT))
-    # s.sendall(str(command))
-    # s.close()
+    HOST = 'localhost'
+    PORT = 50007
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT))
+    s.sendall(str(command))
+    s.close()
 
 def heartbeat():
     with open('last_callback.txt', 'w') as f:
